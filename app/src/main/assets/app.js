@@ -202,8 +202,25 @@ async function deletePlayer(){
   snapshot();if(state[side].startGoalie===p.number)state[side].startGoalie='';state[side].players=state[side].players.filter(p=>p.id!==id);
   $('player-dialog').close();commit('Spieler gel\u00f6scht');
 }
+// 3.2: while editing, the original entry stays visible ("Bisher: ...") and its choices are marked.
+let editOriginal=null;
+function previousText(e){
+  if(!e)return '';const who=e.type==='note'&&!e.team?'Allgemein':sideName(e.team);
+  const nums=e.type==='goal'?[e.player,e.assist1,e.assist2].filter(Boolean).map((n,i)=>(i?'A ':'')+'#'+n).join(', '):e.type==='penalty'?(e.bench?'Bank':'#'+e.player)+', '+e.penalty+', '+L.penaltyDurationLabel(e):L.eventShort(e);
+  return [L.formatGameTime(e),L.TYPE_LABELS[e.type],who,nums].filter(Boolean).join(' \u00b7 ');
+}
+function markPrevious(){
+  // Marks the choices of the saved entry with "bisher" (type, team, numbers, penalty, duration).
+  const o=editOriginal,root=$('wizard-content');if(!o||!root)return;
+  const tag=(b)=>{if(!b||b.classList.contains('previous'))return;b.classList.add('previous');if(b.hasAttribute('data-pick-number')||b.hasAttribute('data-served-number')||b.hasAttribute('data-duration'))return;const t=document.createElement('em');t.className='prev-badge';t.textContent='bisher';b.appendChild(t);};
+  const q=(attr,val)=>{if(val==null||val==='')return;root.querySelectorAll('['+attr+']').forEach(b=>{if(b.getAttribute(attr)===String(val))tag(b);});};
+  q('data-type',o.type);q('data-team',o.type==='note'&&!o.team?'none':o.team);
+  if(o.type==='penalty'){q('data-penalty',o.penalty);q('data-duration',o.penaltyDuration);if(o.bench)q('data-action','bench-penalty');}
+  [o.player,o.assist1,o.assist2].forEach(n=>q('data-pick-number',n));
+  if(o.servedBy)q('data-served-number',o.servedBy);
+}
 function newEvent(id){
-  const existing=id&&state.events.find(e=>e.id===id);
+  const existing=id&&state.events.find(e=>e.id===id);editOriginal=existing?JSON.parse(JSON.stringify(existing)):null;
   draft=existing?Object.assign({},existing,{rawTime:gameMode()?L.elapsedDigits(existing):hallUp()?L.upDigits(existing):L.clockDigits(existing)}):{id:null,order:nextOrder(),period:state.currentPeriod,rawTime:'',time:'',team:null,type:null,player:'',assist1:'',assist2:'',penalty:'',penaltyDuration:'2',bench:false,goalieOut:'',goalieIn:''};
   trail=[];stage='time';numericField='player';replaceOnDigit=!!draft.rawTime;saving=false;
   advancing=false;periodPickerOpen=!gameMode()&&!draft.period;chronologyApproval=null;
@@ -243,7 +260,7 @@ function renderWizard(){
   $('wizard').classList.toggle('penalty-home',draft.type==='penalty'&&draft.team==='home');
   $('wizard').classList.toggle('penalty-away',draft.type==='penalty'&&draft.team==='away');
   const context=[draft.time&&L.formatGameTime(draft),draft.type&&L.TYPE_LABELS[draft.type],draft.team&&sideName(draft.team)].filter(Boolean).join(' \u00b7 ');
-  $('wizard-context').textContent=context||'Neues Ereignis';$('wizard-back').disabled=!trail.length;
+  $('wizard-context').textContent=editOriginal?'Bisher: '+previousText(editOriginal):(context||'Neues Ereignis');$('wizard-context').classList.toggle('previous-context',!!editOriginal);$('wizard-back').disabled=!trail.length;
   let html='',title='';
   if(stage==='time'&&gameMode()){
     const up=gameTime();if(up)draft.period=up.period;
@@ -316,7 +333,7 @@ function renderWizard(){
     const goalies=state[draft.team].players.filter(p=>p.isGoalie&&(numericField==='goalieOut'||p.number!==draft.goalieOut));
     html=`<p class="wizard-hint">${numericField==='goalieOut'?'Welcher Torwart geht raus?':'Wer kommt ins Tor? Vorschl\u00e4ge sind \u00e4nderbar.'}</p><div class="goalie-fields">${[['goalieOut','Raus'],['goalieIn','Rein']].map(([field,label])=>`<button type="button" class="goalie-field ${numericField===field?'active':''}" data-goalie-field="${field}"><small>${label}</small><strong>${draft[field]===L.EMPTY_NET?'leer':draft[field]?'#'+esc(draft[field]):'\u2014'}</strong><span>${esc(participantHint(draft[field]||''))||'Nummer eingeben'}</span></button>`).join('')}</div><div class="goalie-options"><button type="button" class="empty-net" data-goalie-number="${L.EMPTY_NET}">Leeres Tor</button>${goalies.map(p=>`<button type="button" data-goalie-number="${esc(p.number)}">#${esc(p.number)} ${esc(p.name)}</button>`).join('')}</div>${keypad(numericField==='goalieOut'?'Weiter':'Speichern',!draft[numericField])}`;
   }
-  $('wizard-title').textContent=title;$('wizard-content').innerHTML=html;$('wizard-content').scrollTop=0;
+  $('wizard-title').textContent=title;$('wizard-content').innerHTML=html;$('wizard-content').scrollTop=0;markPrevious();
   if(stage==='customPenalty')setTimeout(()=>{const n=$('custom-penalty');if(n)n.focus();},50);
   if(stage==='note')setTimeout(()=>{const n=$('note-text');if(n)n.focus();},50);
 }
@@ -541,7 +558,9 @@ async function photoSelected(file){
     const count=parsed.home.length+parsed.away.length;
     $('ocr-message').textContent=count+' Spieler erkannt. Torwarte und Start-Markierung bitte kontrollieren.';
     await reviewRecognition(token);if(token!==photoGeneration)return;
-    openMetadata(!parsed.teamNames[1]&&(!state.away.name||state.away.name==='Gast'),!parsed.gameNumber&&!state.meta.number);
+    // 3.2: compare with the player memory / EHV after the missing match data was asked.
+    const askAway=!parsed.teamNames[1]&&(!state.away.name||state.away.name==='Gast'),askNumber=!parsed.gameNumber&&!state.meta.number;
+    if(askAway||askNumber){pendingRosterCheck=true;openMetadata(askAway,askNumber);}else rosterCheck(true);
   }catch(e){
     if(token!==photoGeneration)return;
     $('ocr-message').textContent='OCR-Fehler: '+String(e.message||e).slice(0,210);toast('Manuelle Erfassung ist weiterhin m\u00f6glich.');
@@ -616,6 +635,7 @@ function saveArchive(list){try{localStorage.setItem(ARCHIVE_KEY,JSON.stringify(l
 const hasContent=s=>s.events.length||(s.shootout||[]).length||s.home.players.length||s.away.players.length;
 function archiveCurrent(){
   if(!hasContent(state))return true;
+  if(memoryOn())try{learnFrom(state,'app');}catch(_){}
   const entry={id:L.uid(),archivedAt:new Date().toISOString(),date:state.meta.date||'',number:state.meta.number||'',home:sideName('home'),away:sideName('away'),score:L.scoreLabel(state),state:JSON.parse(JSON.stringify(state))};
   return saveArchive([entry,...loadArchive()]);
 }
@@ -823,7 +843,7 @@ $('menu-archive').onclick=()=>{$('quick-menu').close();openArchive();};
 function applyClub(){
   const c=homeClub(),src=c.logo||GENERIC_LOGO;
   for(const img of [document.querySelector('.app-header img'),document.querySelector('#info-dialog > img')])if(img){if(img.getAttribute('src')!==src)img.src=src;img.alt=c.name;}
-  $('info-club').textContent=c.name;$('menu-settings-note').textContent='Heimmannschaft: '+c.name;
+  $('info-club').textContent=c.name;$('menu-settings-note').textContent='Heimmannschaft: '+c.name;if(typeof renderUpdate==='function'&&document.getElementById('update-status'))try{renderUpdate();}catch(_){}
 }
 const foldText=t=>String(t||'').toLocaleLowerCase('de').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ß/g,'ss').replace(/[^a-z0-9]+/g,' ').trim();
 function renderClubList(){
@@ -833,9 +853,9 @@ function renderClubList(){
     return `<button type="button" class="club-item${sel?' selected':''}" role="option" aria-selected="${sel}" data-club="${esc(c.id)}"><img src="${esc(c.logo)}" alt=""><span>${esc(c.name)}<small>${esc(c.full)}</small></span>${sel?'<b aria-hidden="true">\u2713</b>':''}</button>`;}).join(''):'<p class="dialog-copy">Kein Verein gefunden. Unten einen eigenen Namen eintragen.</p>';
   $('club-custom').value=settings.homeCustom||'';
 }
-function openSettings(){$('club-search').value='';renderClubList();$('settings-dialog').showModal();const sel=$('club-list').querySelector('.selected');if(sel)sel.scrollIntoView({block:'center'});}
+function openSettings(){$('club-search').value='';renderClubList();renderMemoryStats();renderUpdate();$('settings-dialog').showModal();const sel=$('club-list').querySelector('.selected');if(sel)sel.scrollIntoView({block:'center'});}
 function setHomeClub(next){
-  const before=homeClub().name;settings=Object.assign(next,settings.swipe===false?{swipe:false}:{});if(!saveSettings())toast('Einstellung konnte nicht gespeichert werden.');
+  const before=homeClub().name;const keep=Object.assign({},settings);delete keep.homeClub;delete keep.homeCustom;settings=Object.assign(keep,next);if(!saveSettings())toast('Einstellung konnte nicht gespeichert werden.');
   const now=homeClub();applyClub();
   // An untouched game takes the new name; a running game keeps its teams.
   if(!state.events.length&&!state.home.players.length&&(!state.home.name||state.home.name===before)){state.home.name=now.name;persist();}
@@ -869,6 +889,123 @@ document.querySelector('main').addEventListener('touchend',ev=>{
 document.querySelector('main').addEventListener('touchcancel',()=>{swipeStart=null;},{passive:true});
 $('swipe-toggle').checked=swipeOn();
 $('swipe-toggle').onchange=()=>{settings=Object.assign({},settings,{swipe:$('swipe-toggle').checked});saveSettings();};
+// ---------- 3.2: player memory (on the device) and optional EHV check ----------
+const PLAYERS_KEY='egrep-spieler-v1',EHV_CACHE_KEY='egrep-ehv-cache-v1',R=window.EgrepRoster;
+const memoryOn=()=>settings.memory!==false,ehvOn=()=>settings.ehv!==false;
+function loadPlayers(){try{return R.normalizeDb(JSON.parse(localStorage.getItem(PLAYERS_KEY)||'null'));}catch(_){return R.emptyDb();}}
+function savePlayers(db){try{localStorage.setItem(PLAYERS_KEY,JSON.stringify(db));return true;}catch(_){return false;}}
+function learnFrom(s,src){let db=loadPlayers();['home','away'].forEach(side=>{const t=s[side];if(t&&Array.isArray(t.players)&&t.players.length)db=R.learn(db,t.name,s.meta&&s.meta.number,t.players,src);});savePlayers(db);}
+function renderMemoryStats(){const st=R.stats(loadPlayers());$('memory-stats').textContent=st.players?'Spieler-Gedächtnis: '+st.players+' Spieler aus '+st.teams+' Mannschaften (nur auf diesem Gerät).':'Spieler-Gedächtnis: noch leer. Es lernt aus abgeschlossenen Spielen („Neues Spiel“) und aus EHV-Spielberichten.';}
+async function fetchText(url){const c=new AbortController(),t=setTimeout(()=>c.abort(),12000);try{const r=await fetch(url,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.text();}finally{clearTimeout(t);}}
+window.egrepFetchText=fetchText;
+let checking=false,pendingRosterCheck=false;
+function rosterStatus(t){$('roster-check-status').textContent=t;}
+async function rosterCheck(auto){
+  if(checking)return;const sides=['home','away'];
+  if(!memoryOn()&&!ehvOn()){if(!auto)toast('Abgleich ist in den Einstellungen ausgeschaltet.');return;}
+  checking=true;$('roster-check').disabled=true;
+  try{
+    const refs={home:[],away:[]};let exact=false,source='Spieler-Gedächtnis',note='';
+    if(memoryOn()){const db=loadPlayers();sides.forEach(s=>refs[s]=R.memoryFor(db,state[s].name,state.meta.number));}
+    if(ehvOn()){
+      if(navigator.onLine===false)note='EHV nicht abgefragt (offline).';
+      else{rosterStatus('EHV-Spielberichte werden abgefragt …');
+        let cache={};try{cache=JSON.parse(localStorage.getItem(EHV_CACHE_KEY)||'{}')||{};}catch(_){}
+        try{
+          const r=await R.ehvLookup({fetchText:window.egrepFetchText,cache,homeName:sideName('home'),awayName:sideName('away'),gameNumber:state.meta.number,progress:(d,n)=>rosterStatus('EHV-Spielpläne '+d+'/'+n+' …')});
+          if(r.rows)try{localStorage.setItem(EHV_CACHE_KEY,JSON.stringify({at:Date.now(),rows:r.rows}));}catch(_){}
+          if(r.exact){sides.forEach(s=>refs[s]=r[s]);exact=true;source='EHV-Spielbericht '+((r.game&&r.game.n)||'');}
+          else if(r.home.length||r.away.length){sides.forEach(s=>{const byNum=new Map(refs[s].map(p=>[String(p.number),p]));r[s].forEach(p=>byNum.set(String(p.number),p));refs[s]=[...byNum.values()];});source=memoryOn()?'Spieler-Gedächtnis und letzte EHV-Spiele':'letzte EHV-Spiele';}
+          else note='Beim EHV nichts Passendes gefunden.';
+          if(memoryOn()&&(r.home.length||r.away.length)){let d=loadPlayers();sides.forEach(s=>{if(r[s].length)d=R.learn(d,state[s].name,state.meta.number,r[s],'ehv');});savePlayers(d);}
+        }catch(_){note='EHV nicht erreichbar.';}
+      }
+    }
+    const list=[];sides.forEach(s=>R.suggest(state[s].players,refs[s],exact,source).forEach(x=>list.push(Object.assign({side:s},x))));
+    if(!list.length){rosterStatus(((refs.home.length||refs.away.length)?'Abgleich ('+source+'): keine Abweichungen.':'Noch keine Vergleichsdaten für diese Mannschaften.')+(note?' '+note:''));if(!auto)toast('Keine Vorschläge');return;}
+    rosterStatus(list.length+' Vorschläge ('+source+').'+(note?' '+note:''));
+    const body=sides.map(s=>{const items=list.map((x,i)=>[x,i]).filter(([x])=>x.side===s);if(!items.length)return '';
+      return `<h3 class="review-team">${esc(sideName(s))}</h3><div class="review-picks suggestion-picks">${items.map(([x,i])=>`<button type="button" data-pick="${i}" aria-pressed="true">${esc(R.describe(x))}</button>`).join('')}</div>`;}).join('');
+    const answer=await openReview('Vorschläge zur Aufstellung','Quelle: '+source+'. Markierte Vorschläge werden übernommen (antippen zum Abwählen). Ohne deine Bestätigung ändert sich nichts.',body,[{label:'Nichts ändern',value:'none'},{label:'Übernehmen',value:'apply',cls:'primary'}]);
+    if(!answer||answer.value!=='apply'||!answer.picks.length){rosterStatus(list.length+' Vorschläge, nichts geändert ('+source+').'+(note?' '+note:''));return;}
+    snapshot();const chosen=answer.picks.map(Number).map(i=>list[i]).filter(Boolean);
+    sides.forEach(s=>{const mine=chosen.filter(x=>x.side===s);if(mine.length){state[s].players=R.applySuggestions(state[s].players,mine);if(!state[s].startGoalie)state[s].startGoalie=L.getStartGoalie(state[s]);}});
+    commit(chosen.length+' Vorschläge übernommen');rosterStatus(chosen.length+' von '+list.length+' Vorschlägen übernommen ('+source+').'+(note?' '+note:''));
+  }finally{checking=false;$('roster-check').disabled=false;}
+}
+$('roster-check').onclick=()=>rosterCheck(false);
+$('metadata-dialog').addEventListener('close',()=>{if(pendingRosterCheck){pendingRosterCheck=false;rosterCheck(true);}});
+$('memory-toggle').checked=memoryOn();$('memory-toggle').onchange=()=>{settings=Object.assign({},settings,{memory:$('memory-toggle').checked});saveSettings();};
+$('ehv-toggle').checked=ehvOn();$('ehv-toggle').onchange=()=>{settings=Object.assign({},settings,{ehv:$('ehv-toggle').checked});saveSettings();};
+$('memory-clear').onclick=async()=>{$('settings-dialog').close();if(await showChoice('Spieler-Gedächtnis löschen?','Alle gemerkten Spielernamen werden von diesem Gerät entfernt. Spiele und Archiv bleiben.','Löschen',true,true)){try{localStorage.removeItem(PLAYERS_KEY);}catch(_){}toast('Spieler-Gedächtnis gelöscht');}openSettings();};
+
+// ---------- 3.2: backup (file) ----------
+const BACKUP_FORMAT='egrep-notes-backup';
+function backupData(){return {format:BACKUP_FORMAT,version:1,app:L.VERSION,created:new Date().toISOString(),game:state,archive:loadArchive(),players:loadPlayers(),settings,signs:showSigns()};}
+function saveBackup(){
+  const json=JSON.stringify(backupData()),name='eGrep-Notes-Sicherung-'+(L.localDate()||'')+'.json';
+  if(isNative){const url='egrep://backup?'+encodeURIComponent(name)+'&'+encodeURIComponent(json);
+    if(url.length>1800000)return toast('Sicherung zu groß ('+Math.round(url.length/1024)+' kB). Bitte ältere Spiele aus dem Archiv löschen.');
+    return nativeCommand(url.slice(8));}
+  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([json],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);toast('Sicherung gespeichert');}catch(_){toast('Sicherung konnte nicht gespeichert werden.');}
+}
+window.egrepBackupSaved=ok=>toast(ok?'Sicherung gespeichert':'Sicherung nicht gespeichert');
+function readBackup(text){
+  let b;try{b=JSON.parse(text);}catch(_){throw new Error('Keine gültige Sicherungsdatei.');}
+  if(!b||b.format!==BACKUP_FORMAT||!b.game)throw new Error('Das ist keine eGrep-Notes-Sicherung.');
+  return b;
+}
+async function restoreBackup(text){
+  let b;try{b=readBackup(text);}catch(e){return toast(e.message);}
+  const archive=(Array.isArray(b.archive)?b.archive:[]).filter(a=>a&&a.id&&a.state);
+  const created=String(b.created||'').slice(0,16).replace('T',' ');
+  if(!await showChoice('Sicherung einlesen?','Sicherung vom '+(created||'?')+' mit '+archive.length+' archivierten Spielen. Nichts wird gelöscht: Archiv und Spieler-Gedächtnis werden zusammengeführt, ein laufendes Spiel kommt vorher ins Archiv.','Einlesen'))return;
+  const game=L.migrateState(b.game);
+  const merged=[...loadArchive()];const ids=new Set(merged.map(a=>a.id));archive.forEach(a=>{if(!ids.has(a.id)){merged.push(a);ids.add(a.id);}});
+  merged.sort((x,y)=>String(y.archivedAt||'').localeCompare(String(x.archivedAt||'')));
+  const dropped=Math.max(0,merged.length-ARCHIVE_MAX);
+  const replace=hasContent(game)&&JSON.stringify(game)!==JSON.stringify(state);
+  if(replace&&hasContent(state)){if(!archiveCurrent())return toast('Aktuelles Spiel konnte nicht archiviert werden. Abgebrochen.');const cur=loadArchive()[0];if(cur&&!ids.has(cur.id))merged.unshift(cur);}
+  if(!saveArchive(merged))return toast('Archiv konnte nicht gespeichert werden.');
+  savePlayers(R.mergeDb(loadPlayers(),b.players));
+  if(b.settings&&typeof b.settings==='object'&&!localStorageHasSettings())settings=Object.assign({},b.settings),saveSettings(),applyClub();
+  if(replace){history=[];clearPhoto();state=game;commit('Sicherung eingelesen');}else renderAll();
+  renderArchiveButton();toast('Sicherung eingelesen'+(dropped?' · '+dropped+' älteste Spiele passten nicht ins Archiv':''));
+}
+function localStorageHasSettings(){try{return !!localStorage.getItem(SETTINGS_KEY);}catch(_){return false;}}
+$('backup-save').onclick=saveBackup;
+$('backup-input').onchange=async ev=>{const f=ev.target.files&&ev.target.files[0];ev.target.value='';if(!f)return;$('settings-dialog').close();
+  if(f.size>5e6)return toast('Datei zu groß für eine Sicherung.');try{await restoreBackup(await f.text());}catch(_){toast('Sicherung konnte nicht gelesen werden.');}};
+
+// ---------- 3.2: update check (like the other apps: version file on the project page) ----------
+const UPDATE_KEY='egrep-update',UPDATE_URL='https://cappy0815.github.io/downloads/egrep-notes.json',UPDATE_PAGE='https://cappy0815.github.io/#egrep-notes',DAY_MS=864e5;
+function loadUpdate(){try{return JSON.parse(localStorage.getItem(UPDATE_KEY)||'{}')||{};}catch(_){return {};}}
+function saveUpdate(u){try{localStorage.setItem(UPDATE_KEY,JSON.stringify(u));}catch(_){}}
+function newerVersion(a,b){const p=v=>String(v||'').replace(/^v/i,'').split('.').map(x=>parseInt(x,10)||0);const x=p(a),y=p(b);for(let i=0;i<Math.max(x.length,y.length);i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0);}return false;}
+const updateAuto=()=>loadUpdate().auto!==false;
+function renderUpdate(){
+  const u=loadUpdate(),avail=u.latest&&newerVersion(u.latest,L.VERSION);
+  $('update-toggle').checked=updateAuto();
+  $('update-status').textContent=avail?'Neue Version '+u.latest+' verfügbar (installiert: '+L.VERSION+').'+(u.failed?' Letzte Prüfung: Projektseite nicht erreichbar.':''):u.failed?'Projektseite nicht erreichbar'+(u.last?' · zuletzt geprüft '+new Date(u.last).toLocaleString('de-DE'):'')+'.':u.last?'Aktuell (Version '+L.VERSION+') · geprüft '+new Date(u.last).toLocaleString('de-DE')+'.':'Noch nicht geprüft.';
+  $('update-download').classList.toggle('hidden',!avail);if(avail)$('update-download').href=/^https:\/\/cappy0815\.github\.io\//.test(u.download||'')?u.download:UPDATE_PAGE;
+  $('menu-settings-note').textContent=(avail?'Update '+u.latest+' · ':'')+'Heimmannschaft: '+homeClub().name;
+  $('open-menu').classList.toggle('has-update',!!avail);
+}
+let updateBusy=false;
+async function checkUpdate(manual){
+  if(updateBusy)return;updateBusy=true;if(manual)$('update-status').textContent='Prüfe …';
+  const u=loadUpdate();
+  try{const o=JSON.parse(await window.egrepFetchText(UPDATE_URL+'?t='+Date.now()));const v=String(o.version||'').trim().replace(/^v/i,'');if(!/^\d+(\.\d+)*$/.test(v))throw new Error('format');
+    Object.assign(u,{latest:v,download:String(o.download||''),page:String(o.page||UPDATE_PAGE),last:Date.now(),failed:false});saveUpdate(u);
+    if(newerVersion(v,L.VERSION)&&!manual&&u.notified!==v){u.notified=v;saveUpdate(u);toast('Neue Version '+v+' verfügbar · Menü › Einstellungen');}
+    if(manual)toast(newerVersion(v,L.VERSION)?'Neue Version '+v+' verfügbar':'eGrep Notes ist aktuell ('+L.VERSION+')');
+  }catch(_){Object.assign(u,{last:Date.now(),failed:true});saveUpdate(u);if(manual)toast('Projektseite nicht erreichbar.');}
+  finally{updateBusy=false;renderUpdate();}
+}
+$('update-check').onclick=()=>checkUpdate(true);
+$('update-toggle').onchange=()=>{const u=loadUpdate();u.auto=$('update-toggle').checked;saveUpdate(u);};
+renderUpdate();
+setTimeout(()=>{const u=loadUpdate();if(updateAuto()&&navigator.onLine!==false&&Date.now()-(u.last||0)>DAY_MS)checkUpdate(false);},4000);
 $('show-info').onclick=()=>{$('quick-menu').close();$('info-dialog').showModal();};$('close-info').onclick=()=>$('info-dialog').close();
 $('choice-confirm').onclick=()=>closeChoice(true);$('choice-cancel').onclick=()=>closeChoice(false);$('choice-dialog').addEventListener('cancel',ev=>{ev.preventDefault();closeChoice(false);});
 $('time-jump-next').onclick=()=>closeTimeJump('next');$('time-jump-retro').onclick=()=>closeTimeJump('retro');$('time-jump-cancel').onclick=()=>closeTimeJump(false);

@@ -1,3 +1,26 @@
+## 3.2 - 2026-11-20
+
+- Beim Bearbeiten steht oben "Bisher: Zeit · Art · Mannschaft · Nummern/Strafe"; die bisherige
+  Auswahl ist in jedem Schritt markiert (Ereignisart, Mannschaft, Nummern, Strafart, Strafmass).
+- Spieler-Gedaechtnis (nur auf dem Geraet): lernt bei "Neues Spiel" die Aufstellungen beider
+  Mannschaften (nur Spieler ohne offene Markierung), getrennt nach Mannschaft und Altersklasse
+  (aus der Spielnummer, z. B. U13). Nach dem Einlesen und per Knopf "Spieler abgleichen" kommen
+  Vorschlaege: Schreibweise (z. B. Schloeber -> Schloesser), Nummer (23 -> 29), Torwart.
+  Nichts wird ohne Bestaetigung geaendert; einzelne Vorschlaege abwaehlbar; Rueckgaengig moeglich.
+- EHV-Abgleich (abschaltbar): sucht das Spiel ueber die Spielnummer in den EHV-Spielplaenen
+  (hockeydata, wie ehv-nrw.de). Steht dort schon die Aufstellung dieses Spiels, wird damit
+  verglichen (inkl. fehlender Spieler zum Ergaenzen), sonst mit den letzten Spielen der
+  Mannschaften. Spielplaene werden 6 Stunden zwischengespeichert. Gemerkt werden nur Nummer,
+  Name und Torwart, keine Geburtsdaten.
+- Sicherung: "Sicherung speichern" schreibt aktuelles Spiel, Archiv, Spieler-Gedaechtnis und
+  Einstellungen als JSON-Datei (Android-Dialog "Speichern unter"). "Sicherung einlesen" fuehrt
+  zusammen und loescht nichts; ein laufendes Spiel kommt vorher ins Archiv.
+- Update-Pruefung wie in den anderen Apps: Versionsdatei auf cappy0815.github.io, einmal taeglich
+  automatisch (abschaltbar) oder per "Jetzt pruefen"; Hinweis im Menue, Download oeffnet den Browser.
+  Installiert wird nichts automatisch.
+- Neue Berechtigung INTERNET (nur fuer Update-Pruefung und EHV-Abgleich). Links in den Browser
+  jetzt fuer alle Seiten unter https://cappy0815.github.io/ (Projektseite, Download).
+
 ## 3.1 - 2026-11-20
 
 - Wischen zwischen Aufstellung, Spiel und Bericht: nach links = naechster Reiter, nach rechts =

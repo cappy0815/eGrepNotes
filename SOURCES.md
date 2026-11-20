@@ -129,3 +129,15 @@ Cross-Check: linke Bildhaelfte gespiegelt (beide Faeuste vorn); Haken: Schlaeger
 https://www.ehv-nrw.de/club/clublist/ - abgerufen 20.11.2026
 Mitgliedsvereine des EHV NRW mit Kurzname, vollem Vereinsnamen und Wappen (43 Eintraege), auf 96 px
 verkleinert, als WebP in assets/clubs.js. Neusser EV nutzt weiter das mitgelieferte nev-logo.png.
+
+## EHV-Abgleich (3.2)
+
+https://ehv-nrw.de/leagues/next-games/ - enthaelt den oeffentlichen hockeydata-Schluessel und die Liga-Kennungen
+(wie im EHV-Live-Ticker genutzt). Datenquelle https://api.hockeydata.net/data/ebel/Schedule und GetGameReport
+(am 20.11.2026 geprueft: Aufstellungen homeFieldPlayers/homeGoalKeepers/awayFieldPlayers/awayGoalKeepers mit
+Nummer und Name; teils schon vor dem Spiel). Genutzt werden nur Nummer, Name, Torwart.
+
+## Sicherung (3.2)
+
+https://developer.android.com/training/data-storage/shared/documents-files - Intent ACTION_CREATE_DOCUMENT
+(CATEGORY_OPENABLE, EXTRA_TITLE) und ContentResolver.openOutputStream fuer das Schreiben der Datei.

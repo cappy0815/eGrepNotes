@@ -66,6 +66,21 @@ class Dex:
                 calls.append((cl,n,argv));env['calls'].append((cl,n,argv))
                 if (cl,n) in self.codes:return execute(cl,n,argv)
                 if n=='equals':return argv[0]==argv[1]
+                if n=='startsWith':return 1 if argv[0].startswith(argv[1]) else 0
+                if n=='indexOf':return argv[0].find(argv[1])
+                if n=='substring':return argv[0][argv[1]:argv[2]] if len(argv)>2 else argv[0][argv[1]:]
+                if n=='decode' and cl=='Landroid/net/Uri;':
+                    from urllib.parse import unquote;return unquote(argv[0])
+                if n=='addCategory':argv[0].setdefault('categories',[]).append(argv[1]);return argv[0]
+                if n=='setType':argv[0]['type']=argv[1];return argv[0]
+                if n=='getData':return argv[0].get('uri')
+                if n=='getContentResolver':return {'class':'resolver'}
+                if n=='openOutputStream':
+                    if env.get('write_error'):raise JavaError('Ljava/io/IOException;','No space')
+                    st={'uri':argv[1],'data':b''};env.setdefault('streams',[]).append(st);return st
+                if n=='getBytes':return argv[0].encode(argv[1].lower())
+                if n=='write':argv[0]['data']+=argv[1];return None
+                if n=='close':argv[0]['closed']=True;return None
                 if n=='<init>':
                     if cl=='Ljava/io/File;':argv[0]['path']=argv[1]['path']+'/'+argv[2]
                     if cl=='Landroid/content/Intent;':argv[0]['action']=argv[1];argv[0]['extras']={}
@@ -165,6 +180,8 @@ class Dex:
                         pc+=signed(c[pc+1]) if zero==(op==0x38) else 2
                     elif op in [0x32,0x33]:pc+=signed(c[pc+1]) if (r[a]==r[bb])==(op==0x32) else 2
                     elif op==0x29:pc+=signed(c[pc+1])
+                    elif op==0x3a:pc+=signed(c[pc+1]) if (r[aa] or 0)<0 else 2
+                    elif op==0xd8:lit=(c[pc+1]>>8);lit=lit-256 if lit>127 else lit;r[aa]=r[c[pc+1]&255]+lit;pc+=2
                     elif op==0x27:raise JavaError(r[aa]['class'])
                     else:raise AssertionError((owner,name,pc,hex(op)))
                 except JavaError as e:
@@ -202,14 +219,32 @@ def verify_native(dex):
         assert next(x[2][1] for x in c if x[1]=='setMediaSize')['id']=='ISO_A4'
         assert next(x[2][1] for x in c if x[1]=='setMinMargins')['margins']==[500]*4
     e['print_available']=False;_,c=dex.run(LINK,'shouldOverrideUrlLoading',[{},view,'egrep://print'],e);assert not any(x[1]=='print' for x in c)
-    _,c=dex.run(LINK,'shouldOverrideUrlLoading',[{},view,'https://untrusted.example'],e);assert all(x[1]=='equals' for x in c)
+    _,c=dex.run(LINK,'shouldOverrideUrlLoading',[{},view,'https://untrusted.example'],e);assert all(x[1] in ('equals','startsWith') for x in c) and 'opened' not in e
     # 2.8: only the project page opens the browser (VIEW intent, new task); missing browser does not crash.
     ret,c=dex.run(LINK,'shouldOverrideUrlLoading',[{},view,'https://cappy0815.github.io/'],e);o=e.pop('opened')
     assert ret==1 and o['action']=='android.intent.action.VIEW' and o['data']=='https://cappy0815.github.io/' and o['flags']==0x10000000,o
-    for bad in ['https://cappy0815.github.io/evil','http://cappy0815.github.io/','https://example.com/']:
+    # 3.2: every page below https://cappy0815.github.io/ (project page anchor, update download) opens the browser.
+    for good in ['https://cappy0815.github.io/#egrep-notes','https://cappy0815.github.io/downloads/eGrep-Notes-v3.2.apk']:
+        ret,_=dex.run(LINK,'shouldOverrideUrlLoading',[{},view,good],e);o=e.pop('opened');assert ret==1 and o['data']==good,good
+    for bad in ['http://cappy0815.github.io/','https://example.com/','https://cappy0815.github.io.evil.example/x','https://cappy0815.github.io@evil.example/']:
         ret,_=dex.run(LINK,'shouldOverrideUrlLoading',[{},view,bad],e);assert ret==1 and 'opened' not in e,bad
     e['no_browser']=True;ret,_=dex.run(LINK,'shouldOverrideUrlLoading',[{},view,'https://cappy0815.github.io/'],e);assert ret==1 and 'opened' not in e;e.pop('no_browser')
     dex.run(LINK,'onPageFinished',[{},view,'file:///android_asset/index.html'],e);assert owner['pageReady']==1
+    # 3.2: backup -> CREATE_DOCUMENT with the proposed file name, then the JSON is written to the chosen file.
+    from urllib.parse import quote
+    payload='{"format":"egrep-notes-backup","text":"Gr\u00fc\u00dfe & mehr"}';name='eGrep-Notes-Sicherung-2026-11-20.json'
+    ret,_=dex.run(LINK,'shouldOverrideUrlLoading',[{},view,'egrep://backup?'+quote(name,safe='')+'&'+quote(payload,safe='')],e)
+    it=e['intent'];assert ret==1 and e['request']==43 and it['action']=='android.intent.action.CREATE_DOCUMENT' and it['type']=='application/json' and it['categories']==['android.intent.category.OPENABLE'] and it['extras']['android.intent.extra.TITLE']==name,it
+    assert owner['backupData']==payload
+    _,c=dex.run(MAIN,'onActivityResult',[owner,43,-1,{'uri':'content://docs/backup.json'}],e);st=e['streams'].pop()
+    assert st['uri']=='content://docs/backup.json' and st['data']==payload.encode('utf-8') and st.get('closed') and not owner['backupData']
+    assert [x[2][1] for x in c if x[1]=='loadUrl']==['javascript:window.egrepBackupSaved&&window.egrepBackupSaved(true)']
+    for code,data,err in [(0,None,False),(-1,None,False),(-1,{'uri':None},False),(-1,{'uri':'content://docs/x'},True)]:
+        owner['backupData']=payload;e['write_error']=err;_,c=dex.run(MAIN,'onActivityResult',[owner,43,code,data],e)
+        assert [x[2][1] for x in c if x[1]=='loadUrl']==['javascript:window.egrepBackupSaved&&window.egrepBackupSaved(false)'] and not owner['backupData'],(code,data,err)
+    e['write_error']=False
+    _,c=dex.run(LINK,'shouldOverrideUrlLoading',[{},view,'egrep://backup?ohne-trenner'],e)
+    assert [x[2][1] for x in c if x[1]=='loadUrl']==['javascript:window.egrepBackupSaved&&window.egrepBackupSaved(false)']
     # Selecting a gallery photo is a distinct action, never forces the camera.
     ret,c=dex.run(CHOOSE,'onShowFileChooser',[client,view,'cb1',{'capture':False}],e)
     assert ret==1 and e['request']==41 and e['intent']['action']=='PICK'
@@ -256,7 +291,7 @@ def verify_native(dex):
     for method,args in [('insert',[provider,URI,{}]),('delete',[provider,URI,None,None]),('update',[provider,URI,{},None,None])]:
         try:dex.run(PROVIDER,method,args,e);raise AssertionError('Write endpoint accepted')
         except JavaError as ex:assert ex.kind=='Ljava/lang/UnsupportedOperationException;'
-    print('PASS native bytecode: gallery, full-size camera, null result, cancellation, missing camera, stale callbacks, activity recovery, reset, isolated provider, keep-screen-on, print, project link (only cappy0815.github.io, no crash without browser), app shortcut Schiri-Zeichen (start with #signs, running app via onNewIntent, start never blocked) and blocked navigation. Simulated Android APIs only.')
+    print('PASS native bytecode: gallery, full-size camera, null result, cancellation, missing camera, stale callbacks, activity recovery, reset, isolated provider, keep-screen-on, print, links only below https://cappy0815.github.io/ (no crash without browser), backup via CREATE_DOCUMENT (written as UTF-8, failures reported), app shortcut Schiri-Zeichen (start with #signs, running app via onNewIntent, start never blocked) and blocked navigation. Simulated Android APIs only.')
 
 if __name__=='__main__':
     with zipfile.ZipFile(sys.argv[1]) as z:verify_native(Dex(z.read('classes.dex')))

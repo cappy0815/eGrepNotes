@@ -202,6 +202,7 @@ def build_manifest() -> bytes:
         ".CaptureProvider", PACKAGE_NAME + ".capture",
         PACKAGE_NAME, APP_VERSION, APP_NAME, ".MainActivity",
         "android.intent.action.MAIN", "android.intent.category.LAUNCHER",
+        "uses-permission", "android.permission.INTERNET",
     ]
     pool = StringPool(resources, strings)
     chunks: list[bytes] = [pool.chunk(), pool.resource_map()]
@@ -247,6 +248,9 @@ def build_manifest() -> bytes:
         XmlAttribute(a, "targetSdkVersion", CONFIG["targetSdk"], 0x10),
     ]))
     chunks.append(end("uses-sdk"))
+    # 3.2: internet only for the update check and the optional EHV comparison (no game data is sent).
+    chunks.append(start("uses-permission", [XmlAttribute(a, "name", "android.permission.INTERNET")]))
+    chunks.append(end("uses-permission"))
     chunks.append(start("application", [
         XmlAttribute(a, "theme", 0x01030006, 0x01),
         XmlAttribute(a, "label", APP_NAME),

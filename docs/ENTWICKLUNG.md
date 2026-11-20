@@ -1,10 +1,11 @@
-# eGrep Notes – Entwicklung (Stand 3.1)
+# eGrep Notes – Entwicklung (Stand 3.2)
 
 Autor: Michael Nowak & KI. Stand: 20.11.2026.
 Basis: Quellprojekt 2.9 (Original), darauf 3.0 und 3.1.
 
-## Neu in 3.1 / 3.0
+## Neu in 3.2 / 3.1 / 3.0
 
+- 3.2: Spieler-Gedächtnis, EHV-Abgleich, Sicherung, Update-Prüfung, „Bisher“ beim Bearbeiten.
 - 3.1: Wischen zwischen Aufstellung, Spiel und Bericht (abschaltbar in den Einstellungen).
 - 3.0: Einstellungen mit Heimmannschaft (43 EHV-NRW-Vereine mit Wappen, eigener Name, Neusser EV voreingestellt).
 

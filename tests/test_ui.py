@@ -13,9 +13,9 @@ def boot(page,saved=None,ocr_mock=False,operator_prompt=False,auto_ok=True):
     html=re.sub(r'<script[^>]*src="([^"]+)"[^>]*></script>','',(ROOT/'index.html').read_text())
     html=html.replace('<link rel="stylesheet" href="styles.css">','').replace('src="nev-logo.png"','src="'+LOGO+'"')
     page.set_content(html)
-    page.evaluate('''saved=>{window._saved=saved||{};Object.defineProperty(window,'localStorage',{value:{getItem:k=>window._saved[k]||null,setItem:(k,v)=>window._saved[k]=String(v),removeItem:k=>delete window._saved[k]}})}''',saved)
+    page.evaluate('''saved=>{window._saved=saved||{};Object.defineProperty(window,'localStorage',{value:{getItem:k=>window._saved[k]||null,setItem:(k,v)=>window._saved[k]=String(v),removeItem:k=>delete window._saved[k]}});window.fetch=()=>Promise.reject(new Error('kein Netz im Test'))}''',saved)
     page.add_style_tag(content=(ROOT/'styles.css').read_text())
-    for file in ['logic.js','signs.js','teamlogos.js','clubs.js','ocr.js','app.js']:page.add_script_tag(content=(ROOT/file).read_text())
+    for file in ['logic.js','signs.js','teamlogos.js','clubs.js','roster.js','ocr.js','app.js']:page.add_script_tag(content=(ROOT/file).read_text())
     page.wait_for_timeout(190)
     if not operator_prompt:skip_operator(page)
     # 1.6: every save shows a summary first. Older flows acknowledge it with OK automatically.

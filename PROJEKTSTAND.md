@@ -1,10 +1,18 @@
-# Projektstand eGrep Notes 3.1
+# Projektstand eGrep Notes 3.2
 
 18.10.2026. Autor Michael Nowak & KI.
-Paket de.michaelnowak.egrepnotes; versionCode 31; Datenformatversion 9.
+Paket de.michaelnowak.egrepnotes; versionCode 32; Datenformatversion 9.
 Aufbauend auf 2.7. Offline-Build mit Python/OpenSSL; Java/Gradle-Referenz enthalten.
 Signiert mit dem Original-Schluessel aus der PRIVAT-Sicherung 1.4 (Zertifikat EE:80:AC:0D...2D:77).
 
+Neu 3.2: assets/roster.js (window.EgrepRoster: learn/memoryFor/suggest/applySuggestions/mergeDb, ehvLookup ueber
+api.hockeydata.net/data/ebel Schedule + GetGameReport, Schluessel/Ligen von ehv-nrw.de/leagues/next-games/ mit Rueckfallwerten).
+localStorage 'egrep-spieler-v1' (Gedaechtnis), 'egrep-ehv-cache-v1' (Spielplan-Zeilen 6 h), 'egrep-update'.
+app.js: rosterCheck(auto) nach OCR (nach Metadaten-Dialog) und Knopf #roster-check; learnFrom() in archiveCurrent;
+saveBackup()/restoreBackup() (Format 'egrep-notes-backup' v1); checkUpdate() mit downloads/egrep-notes.json;
+editOriginal + previousText()/markPrevious() fuer "Bisher". Nativ: egrep://backup?name&json -> CREATE_DOCUMENT (43),
+saveBackupResult schreibt UTF-8, egrepBackupSaved(ok); Browser fuer alle https://cappy0815.github.io/-Seiten.
+Manifest: uses-permission INTERNET.
 Neu 3.1: Wischen zwischen den Reitern (touchstart/touchend auf <main>, Schwelle max(60 px, 18 % Breite), dx >= 2*dy,
 < 700 ms; nicht in Eingabefeldern, seitlich scrollenden Bereichen oder bei offenem Dialog), Schalter #swipe-toggle,
 settings.swipe (Standard an).

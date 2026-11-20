@@ -39,6 +39,8 @@
       <label>Spielnummer<input id="game-number" type="text" placeholder="z. B. U13_LL_005" autocomplete="off"></label>
     </div>
     <div id="teams"></div>
+    <button id="roster-check" class="secondary full roster-check" type="button">Spieler abgleichen<small>Spieler-Ged&auml;chtnis und EHV-Spielbericht</small></button>
+    <p id="roster-check-status" class="small-note roster-check-status" aria-live="polite"></p>
     <button class="primary full" data-screen="game" type="button">Zum Spiel &#8594;</button>
   </section>
   <section id="game" class="screen">
@@ -141,6 +143,18 @@
   <button id="settings-reset" type="button" class="secondary full">Zur&uuml;ck auf Neusser EV</button>
   <h3 class="settings-label">Bedienung</h3>
   <label class="settings-switch"><input id="swipe-toggle" type="checkbox" checked><span>Wischen zwischen Aufstellung, Spiel und Bericht</span></label>
+  <h3 class="settings-label">Spieler-Abgleich</h3>
+  <label class="settings-switch"><input id="memory-toggle" type="checkbox" checked><span>Nach dem Einlesen mit dem Spieler-Ged&auml;chtnis abgleichen</span></label>
+  <label class="settings-switch"><input id="ehv-toggle" type="checkbox" checked><span>Zus&auml;tzlich EHV-Spielberichte abfragen (Internet)</span></label>
+  <p class="dialog-copy" id="memory-stats">Spieler-Ged&auml;chtnis: leer</p>
+  <button id="memory-clear" type="button" class="secondary full">Spieler-Ged&auml;chtnis l&ouml;schen</button>
+  <h3 class="settings-label">Sicherung</h3>
+  <p class="dialog-copy">Aktuelles Spiel, Archiv, Spieler-Ged&auml;chtnis und Einstellungen als Datei, z.&nbsp;B. f&uuml;r ein neues Handy.</p>
+  <div class="settings-row"><button id="backup-save" type="button" class="secondary">Sicherung speichern</button><label class="secondary file-button">Sicherung einlesen<input id="backup-input" type="file" accept="application/json,.json,text/plain"></label></div>
+  <h3 class="settings-label">Updates</h3>
+  <label class="settings-switch"><input id="update-toggle" type="checkbox" checked><span>Einmal t&auml;glich automatisch nach Updates suchen</span></label>
+  <div class="settings-row"><button id="update-check" type="button" class="secondary">Jetzt pr&uuml;fen</button><a id="update-download" class="primary button-link hidden" href="https://cappy0815.github.io/">Herunterladen</a></div>
+  <p class="dialog-copy" id="update-status">Noch nicht gepr&uuml;ft.</p>
 </dialog>
 <dialog id="archive-dialog" class="archive-dialog" aria-labelledby="archive-title">
   <h2 id="archive-title" tabindex="-1" autofocus>Archiv</h2>
@@ -171,11 +185,11 @@
   <p>Offline-Spielnotizen f&uuml;r Eishockey: Tore, Assists, Strafen, Penaltys, Torwartwechsel, Timeouts, Notizen und Penaltyschie&szlig;en. Mit Fotoerkennung, schnellen Eingabeschritten und PDF-/Druckausgabe.</p>
   <p><strong>Michael Nowak &amp; KI</strong></p>
   <p class="info-link"><a href="https://cappy0815.github.io/" id="project-link">cappy0815.github.io</a><br><small>Projektseite mit Updates und weiteren Apps</small></p>
-  <p class="legal">Private Spielnotizen &ndash; kein Ersatz f&uuml;r den offiziellen eGrep-Spielbericht.<br>Alle Spieldaten und die Texterkennung bleiben auf diesem Ger&auml;t.</p>
+  <p class="legal">Private Spielnotizen &ndash; kein Ersatz f&uuml;r den offiziellen eGrep-Spielbericht.<br>Alle Spieldaten, das Spieler-Ged&auml;chtnis und die Texterkennung bleiben auf diesem Ger&auml;t. Internet nur f&uuml;r die Update-Pr&uuml;fung und den EHV-Abgleich (beides abschaltbar).</p>
   <p class="legal">OCR: Tesseract.js, deutsches Sprachmodell (tessdata_fast) &middot; Apache License 2.0<br>Heimmannschaft: <span id="info-club">Neusser EV</span>. Vereinslogos: EHV NRW / hockeydata, Marken der Vereine. Strafliste: Kurzbezeichnungen, kein automatisches Strafma&szlig;.</p>
   <button id="close-info" class="primary full" type="button">Schlie&szlig;en</button>
 </dialog>
 <div id="toast" role="status" aria-live="polite"></div>
-<script src="logic.js"></script><script src="signs.js"></script><script src="teamlogos.js"></script><script src="clubs.js"></script><script src="ocr-data.js"></script><script src="tesseract.min.js"></script><script src="ocr.js"></script><script src="app.js"></script>
+<script src="logic.js"></script><script src="signs.js"></script><script src="teamlogos.js"></script><script src="clubs.js"></script><script src="roster.js"></script><script src="ocr-data.js"></script><script src="tesseract.min.js"></script><script src="ocr.js"></script><script src="app.js"></script>
 </body>
 </html>

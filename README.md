@@ -1,6 +1,6 @@
 # eGrep Notes
 
-**Dein Spiel. Deine Notizen.** Der Schnellnotiz-Zettel für den Punktrichter-Tisch: Offline-Spielnotizen fürs Eishockey, mit allem, was später ins offizielle eGrep (elektronischer Spielbericht) muss. Schnell, mit großen Knöpfen, ohne Internet.
+**Dein Spiel. Deine Notizen.** Der Schnellnotiz-Zettel für den Punktrichter-Tisch: Offline-Spielnotizen fürs Eishockey, mit allem, was später ins offizielle eGrep (elektronischer Spielbericht) muss. Schnell, mit großen Knöpfen, funktioniert ohne Internet.
 
 Private Notiz-App. Kein Bezug zum offiziellen eGrep, zum DEB oder zum EHV NRW.
 
@@ -9,6 +9,7 @@ Private Notiz-App. Kein Bezug zum offiziellen eGrep, zum DEB oder zum EHV NRW.
 ## Funktionen
 
 **Erfassen**
+- Beim Bearbeiten zeigt die App, was bisher eingetragen war
 - Tore (Schütze, bis zu zwei Assists), Strafen, Penaltys, Torwartwechsel, Timeouts und Notizen, jeweils mit der abgelesenen Uhrzeit
 - Spieler per Antippen aus der Aufstellung wählen oder Nummer eintippen
 - Drei Zeitmodi pro Spiel: Uhr läuft ab, Uhr läuft auf (Hallenuhr, jedes Drittel ab 0:00), Spielzeit 0:00 bis 60:00
@@ -23,8 +24,10 @@ Private Notiz-App. Kein Bezug zum offiziellen eGrep, zum DEB oder zum EHV NRW.
 **Aufstellung**
 - Per Foto oder PDF einlesen (Texterkennung mit Tesseract auf dem Gerät; PDFs mit Text werden direkt gelesen)
 - Auch lange Listen mit 20+ Spielern je Mannschaft; unsichere Namen und Nummern werden gelb markiert
+- Spieler-Gedächtnis und EHV-Abgleich: Vorschläge zu Schreibweise, Nummer und Torwart; fehlende Spieler aus dem EHV-Spielbericht ergänzen
 
-**Einstellungen**
+**Einstellungen und Sicherung**
+- Sicherung aller Spiele, des Spieler-Gedächtnisses und der Einstellungen als Datei; Update-Prüfung über die Projektseite
 - Heimmannschaft aus den Mitgliedsvereinen des EHV NRW wählen (mit Wappen) oder eigenen Namen eintragen. Voreinstellung: Neusser EV.
 
 **Auswertung**
@@ -35,7 +38,7 @@ Private Notiz-App. Kein Bezug zum offiziellen eGrep, zum DEB oder zum EHV NRW.
 
 Aktuelle Version auf der Projektseite laden: **[cappy0815.github.io › eGrep Notes](https://cappy0815.github.io/#egrep-notes)** (APK mit SHA-256-Prüfsumme). Installation aus unbekannten Quellen erlauben. Updates installieren sich über die alte Version, die Spiele bleiben erhalten.
 
-Die App braucht keine Internet-Berechtigung. Alle Daten bleiben auf dem Gerät.
+Alle Spieldaten bleiben auf dem Gerät. Internet braucht die App nur für die Update-Prüfung und den EHV-Abgleich (beides abschaltbar); dabei werden keine Spieldaten gesendet.
 
 ## Versionen
 

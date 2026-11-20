@@ -55,7 +55,8 @@ def main(path):
         dex=Dex(z.read('classes.dex'))
     assert nodes['provider']['authorities']=='de.michaelnowak.egrepnotes.capture'
     assert nodes['provider']['exported']==0 and nodes['provider']['grantUriPermissions']==0xffffffff
-    assert 'uses-permission' not in nodes, 'Unexpected extra device permissions'
+    # 3.2: exactly one permission: INTERNET (update check, optional EHV comparison).
+    assert nodes.get('uses-permission',{}).get('name')=='android.permission.INTERNET', 'Unexpected device permissions'
     verify_native(dex)
     print('APK PASS: archive integrity, per-entry SHA-256, CMS signature, version/package, provider permissions, DEX checksums and simulated native paths.')
 if __name__=='__main__':main(Path(sys.argv[1]))

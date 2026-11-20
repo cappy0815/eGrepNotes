@@ -1,3 +1,23 @@
+Teststand 3.2 - 20.11.2026
+PASS: test_v32_logic: Altersklasse, Spieler-Gedaechtnis (nur bestaetigte Spieler, Zaehler, Ersetzen, Klassen
+      getrennt, Grenzen, kaputte Daten), Vorschlaege Name/Nummer/Torwart/fehlend (Gedaechtnis vs. exakte
+      EHV-Aufstellung), Uebernahme ohne Eingabe zu veraendern, Zusammenfuehren, hockeydata-Auswertung ohne
+      Geburtsdaten, Mannschaftsabgleich, EHV-Suche exakt/vertauscht/letzte Spiele/Zwischenspeicher/offline.
+PASS: test_v32_ui (Chromium, Netz simuliert): "Bisher" und Markierungen beim Bearbeiten (320x480, 412x915),
+      nicht bei neuen Eintraegen; Vorschlaege abwaehlen/uebernehmen/rueckgaengig/nichts aendern; EHV-Aufstellung
+      ergaenzt fehlenden Spieler; EHV nicht erreichbar -> Hinweis; Lernen bei "Neues Spiel"; Gedaechtnis
+      anzeigen/loeschen; Sicherung speichern und auf leerem Geraet einlesen, keine Doppelten, laufendes Spiel
+      vorher ins Archiv, falsche Datei abgelehnt; Update neuer/aktuell/fremder Link nie verlinkt/nicht
+      erreichbar/automatisch an und aus.
+PASS: test_native_camera erweitert: Sicherung per CREATE_DOCUMENT (Dateiname, JSON, UTF-8 geschrieben,
+      Fehlerfaelle melden "nicht gespeichert"), Browser nur fuer Seiten unter https://cappy0815.github.io/
+      (auch keine Tricks wie cappy0815.github.io.evil.example oder @evil.example).
+PASS: test_apk: genau eine Berechtigung (INTERNET). Alle bisherigen Tests (2.9 bis 3.1).
+PASS: Echte Daten (nur lokal geprueft, nicht gespeichert): EHV-Abfrage findet ein kommendes Spiel ueber die
+      Spielnummer samt Aufstellung beider Teams; ohne passende Nummer die letzten Spiele (U13 und Senioren).
+      Abruf aus file:// im Chromium klappt (CORS erlaubt) fuer hockeydata und die Projektseite.
+Nicht getestet: echtes Android-Geraet (Speichern-Dialog, Dateiauswahl fuer .json, Netz in der WebView).
+
 Teststand 3.1 - 20.11.2026 (auf dem Original-Quellprojekt 2.9)
 PASS: test_v30_ui (320x480, 360x640, 412x915): Einstellungen, 43 Vereine mit Wappen, Suche (Umlaute egal,
       voller Name), Neusser EV voreingestellt und zuruecksetzbar, eigener Name mit neutralem Wappen,
