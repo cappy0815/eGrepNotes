@@ -1,0 +1,88 @@
+Teststand 3.0 - 20.11.2026
+PASS: test_v30_ui (320x480, 360x640, 412x915): Einstellungen im Menue, 43 Vereine mit Wappen, Suche
+      (Umlaute egal, voller Vereinsname), Neusser EV voreingestellt und "Zurueck auf Neusser EV",
+      eigener Name mit neutralem Wappen, Kopfzeile/Info/Tafel/Bericht/Druck, Farben unveraendert,
+      leeres Spiel uebernimmt den Verein, laufendes Spiel behaelt seine Teams, neues Spiel uebernimmt
+      den Verein, kaputte Einstellung faellt auf Neusser EV zurueck, Android-Zurueck schliesst.
+PASS: test_v29_ui und test_v29_logic (aus 2.9 uebernommen): Absitzender bei Torwart-/Bankstrafen,
+      App-Verknuepfung im Browser, OCR-Hilfen, PDF-Text.
+PASS: test_logic, test_parser, test_goalie_parser, test_penalty_duration (an die Strafdauern seit 2.0
+      angepasst), test_print (A4), test_native_camera (simulierte Android-APIs inkl. App-Verknuepfung),
+      test_apk 3.0, test_upgrade 2.9 -> 3.0 (gleiches Zertifikat, hoeherer versionCode).
+PASS: Nachbau 2.9: Mit den 2.9-Dateien erzeugt build_apk.py inhaltlich exakt die veroeffentlichte
+      2.9-APK (alle Eintraege ausser der Signatur byte-gleich).
+Nicht mehr vorhanden: die UI-Testreihe aus 1.5 bis 2.8 und die OCR-Messung an echten Fotos (ging mit dem
+      alten Arbeitsordner verloren; die Fotos waren nie Teil des Projekts).
+Nicht getestet: echtes Android-Geraet.
+
+Teststand 1.4 - 08.10.2026
+PASS: Node logic (8 groups), penalty durations, OCR parser and synthetic goalie parser.
+PASS: browser UI, period UI, operator/photo UI, new penalty UI.
+PASS: five mobile penalty forms including 320x480 without required scrolling.
+PASS: actual CSS-to-PDF output for 0/12/30/60/120 events and 45 long-text events.
+PASS: one page, all tested names and events preserved, no clipped page bounds.
+PASS: readable multipage switch and low-font-size warning.
+PASS: APK archive/CMS/entry hashes, manifest/version, DEX checksums/native simulation.
+PASS: same package and signing certificate as 1.3, higher versionCode, unchanged OCR.
+SKIPPED: real browser HTTP localStorage reload blocked by environment.
+NOT TESTED: real Android device, Android VM verifier, installation, actual camera,
+actual starting-goalie image, real printer/system print dialog.
+Build/archive recovery proof is verified separately after packaging.
+
+Print measurements (point size depends on content):
+[
+  {
+    "fixture": "print-0.pdf",
+    "pages": 1,
+    "onePage": true,
+    "fontPt": 9.99999975,
+    "heightPx": 176,
+    "eventCount": 0,
+    "fits": true
+  },
+  {
+    "fixture": "print-12.pdf",
+    "pages": 1,
+    "onePage": true,
+    "fontPt": 9.99999975,
+    "heightPx": 570,
+    "eventCount": 12,
+    "fits": true
+  },
+  {
+    "fixture": "print-30.pdf",
+    "pages": 1,
+    "onePage": true,
+    "fontPt": 9.09747234506035,
+    "heightPx": 923,
+    "eventCount": 30,
+    "fits": true
+  },
+  {
+    "fixture": "print-60.pdf",
+    "pages": 1,
+    "onePage": true,
+    "fontPt": 6.488934164611817,
+    "heightPx": 991,
+    "eventCount": 60,
+    "fits": true
+  },
+  {
+    "fixture": "print-120.pdf",
+    "pages": 1,
+    "onePage": true,
+    "fontPt": 3.2167706651859276,
+    "heightPx": 967,
+    "eventCount": 120,
+    "fits": true
+  },
+  {
+    "fixture": "print-45-long.pdf",
+    "pages": 1,
+    "onePage": true,
+    "fontPt": 5.287495195698737,
+    "heightPx": 947,
+    "eventCount": 45,
+    "fits": true
+  }
+]

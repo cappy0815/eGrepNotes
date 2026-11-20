@@ -1,0 +1,20 @@
+# Build
+build/
+dist/
+*.apk
+__pycache__/
+*.pyc
+
+# Signaturschluessel - NIE ins Repo (nur das oeffentliche Zertifikat liegt bei)
+*-key.pem
+*.key
+*.jks
+*.keystore
+signing/
+
+# Echte Aufstellungsfotos und Auswertungen (personenbezogene Daten)
+real/
+truth*.json
+*.jpg
+*.jpeg
+!docs/screenshot*.jpg

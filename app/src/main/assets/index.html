@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#191919">
+<title>eGrep Notes</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="app-header">
+  <img src="nev-logo.png" alt="Neusser EV">
+  <div class="brand"><h1>eGrep Notes</h1><p>Dein Spiel. Deine Notizen.</p></div>
+  <button class="undo-button" id="undo" type="button" aria-label="Letzte &Auml;nderung r&uuml;ckg&auml;ngig" title="Letzte &Auml;nderung r&uuml;ckg&auml;ngig" disabled>R&uuml;ckg&auml;ngig</button>
+  <button class="icon-button menu-button" id="open-menu" type="button" aria-label="Men&uuml;: Schiri-Zeichen, Archiv, Einstellungen, Info" aria-haspopup="dialog" title="Men&uuml;"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+</header>
+<nav class="tabs" aria-label="Bereiche">
+  <button class="tab active" data-screen="setup" type="button">Aufstellung</button>
+  <button class="tab" data-screen="game" type="button">Spiel</button>
+  <button class="tab" data-screen="report" type="button">Bericht</button>
+</nav>
+<main>
+  <section id="setup" class="screen active">
+    <div class="section-heading"><h2>Aufstellung</h2><span id="save-status" class="status">Lokal gespeichert</span></div>
+    <p class="photo-hint">Scharfes Foto der vollst&auml;ndigen Mannschaftsmeldung oder das PDF. Erkennung ausschlie&szlig;lich auf dem Handy.</p>
+    <div class="photo-actions">
+      <label class="photo-button camera-button"><input id="camera-input" type="file" accept="image/*" capture="environment" aria-label="Foto aufnehmen"><span>Foto aufnehmen</span></label>
+      <label class="photo-button"><input id="photo-input" type="file" accept="image/*,application/pdf,.pdf" aria-label="Foto oder PDF ausw&auml;hlen"><span>Foto oder PDF</span></label>
+    </div>
+    <div id="ocr-panel" class="ocr-panel hidden">
+      <img id="photo-preview" alt="Ausgew&auml;hlte Mannschaftsmeldung">
+      <p id="pdf-name" class="pdf-name hidden"></p>
+      <div class="progress-track"><div id="ocr-progress"></div></div>
+      <p id="ocr-message" aria-live="polite"></p>
+      <button id="remove-photo" class="secondary full" type="button">Bild entfernen</button>
+    </div>
+    <div class="meta-grid">
+      <label>Datum<input id="game-date" type="date"></label>
+      <label>Spielnummer<input id="game-number" type="text" placeholder="z. B. U13_LL_005" autocomplete="off"></label>
+    </div>
+    <div id="teams"></div>
+    <button class="primary full" data-screen="game" type="button">Zum Spiel &#8594;</button>
+  </section>
+  <section id="game" class="screen">
+    <div class="scoreboard">
+      <div><img id="score-home-logo" class="team-logo score-logo hidden" alt=""><span id="score-home-name">Neusser EV</span><strong id="score-home">0</strong><small id="home-goalie"></small></div>
+      <span class="score-colon">:</span>
+      <div><img id="score-away-logo" class="team-logo score-logo hidden" alt=""><span id="score-away-name">Gast</span><strong id="score-away">0</strong><small id="away-goalie"></small></div>
+    </div>
+    <div class="current-period-panel">
+      <div id="current-period-selector" class="period-selector current-period-selector" role="group" aria-label="Aktuelles Drittel">
+        <button type="button" data-current-period="1" aria-pressed="false">1. Drittel</button>
+        <button type="button" data-current-period="2" aria-pressed="false">2. Drittel</button>
+        <button type="button" data-current-period="3" aria-pressed="false">3. Drittel</button>
+      </div>
+      <p id="current-period-note" aria-live="polite">Vor dem ersten Ereignis bitte einmal das Drittel w&auml;hlen.</p>
+      <button id="open-shootout" type="button" class="small-button shootout-button hidden">Penaltyschie&szlig;en</button>
+    </div>
+    <div class="screen-setting">
+      <label class="switch-label"><input id="keep-screen" type="checkbox"><span>Bildschirm an lassen<small id="power-status">Automatisch nach Ladestatus</small></span></label>
+      <button id="screen-auto" type="button" class="small-button" title="Automatik wieder aktivieren">Auto</button>
+      <button id="clock-mode" type="button" class="small-button clock-mode" aria-pressed="false" title="Zeiteingabe für dieses Spiel: Uhr ab, Uhr auf (Hallenuhr) oder Spielzeit (Spielbericht)">Uhr ab &#9660;</button>
+    </div>
+    <button id="new-event" type="button" class="capture-button"><span class="clock-icon" aria-hidden="true">&#9201;</span><span>Neues Ereignis<small id="capture-context">Uhrzeit zuerst &middot; dann Aktion und Team</small></span><span aria-hidden="true">&#8250;</span></button>
+    <div class="section-heading history-heading"><h2>Spielverlauf</h2><span id="event-count" class="muted"></span></div>
+    <div id="event-list" class="event-list"></div>
+    <button id="edit-operator-game" type="button" class="operator-button"><span id="operator-summary">Bediener eintragen</span><span aria-hidden="true">&rsaquo;</span></button>
+  </section>
+  <section id="report" class="screen">
+    <div class="section-heading"><h2>Bericht</h2><span class="muted">Spielnotizen</span></div>
+    <div id="report-sheet" class="report-sheet"></div>
+    <button id="edit-operator-report" type="button" class="operator-button" aria-label="Bedienernamen bearbeiten"><span id="operator-report-summary">Bedienername eintragen</span><span class="operator-pencil" aria-hidden="true">&#9998;</span></button>
+    <label class="print-option"><input id="print-single-page" type="checkbox" checked> Auf eine A4-Seite <small>Aus: größere Schrift, bei Bedarf mehrere Seiten</small></label>
+    <div class="report-actions"><button class="secondary" id="copy-report" type="button">Text kopieren</button><button class="primary" id="print-report" type="button">PDF / Drucken</button></div>
+    <button class="secondary full" id="open-archive" type="button">Archiv</button>
+    <button class="danger full reset-button" id="reset-game" type="button">Neues Spiel beginnen (altes ins Archiv)</button>
+  </section>
+</main>
+<dialog id="wizard" class="wizard" aria-labelledby="wizard-title">
+  <div class="wizard-header"><button id="wizard-back" type="button" class="plain-button" aria-label="Einen Schritt zur&uuml;ck">&#8592;</button><div><small id="wizard-context"></small><h2 id="wizard-title">Uhrzeit</h2></div><button id="wizard-close" type="button" class="plain-button" aria-label="Eingabe abbrechen">&#215;</button></div>
+  <div id="wizard-content" class="wizard-content"></div>
+  <p id="wizard-error" class="inline-error" role="alert"></p>
+</dialog>
+<dialog id="player-dialog" aria-labelledby="player-dialog-title">
+  <form id="player-form">
+    <h2 id="player-dialog-title">Spieler bearbeiten</h2>
+    <label>Trikotnummer<input id="player-number" type="text" inputmode="numeric" maxlength="2" pattern="[0-9]{1,2}" required autocomplete="off"></label>
+    <label>Name <small>(optional)</small><input id="player-name" type="text" autocomplete="off" maxlength="100"></label>
+    <label class="check-row"><input id="player-goalie" type="checkbox">Torwart</label>
+    <label class="check-row"><input id="player-starter" type="checkbox">Starting-Goalie / startet im Tor</label>
+    <div class="dialog-actions"><button id="delete-player" class="danger full-row" type="button">Spieler l&ouml;schen</button><button class="secondary" id="cancel-player" type="button">Abbrechen</button><button class="primary" type="submit">Speichern</button></div>
+  </form>
+</dialog>
+<dialog id="choice-dialog" class="confirm-dialog" aria-labelledby="choice-title">
+  <div class="confirm-symbol" aria-hidden="true">!</div><h2 id="choice-title"></h2><p id="choice-text"></p>
+  <div class="dialog-actions"><button class="secondary" id="choice-cancel" type="button">Zur&uuml;ck</button><button class="primary" id="choice-confirm" type="button">Best&auml;tigen</button></div>
+</dialog>
+<dialog id="time-jump-dialog" class="confirm-dialog time-jump-dialog" aria-labelledby="time-jump-title" aria-describedby="time-jump-text">
+  <div class="confirm-symbol" aria-hidden="true">!</div>
+  <h2 id="time-jump-title">Neues Drittel oder Nachtrag?</h2>
+  <p id="time-jump-text"></p>
+  <div class="time-jump-actions">
+    <button class="primary" id="time-jump-next" type="button">N&auml;chstes Drittel beginnen</button>
+    <button class="secondary" id="time-jump-retro" type="button">Fr&uuml;heres Ereignis nachtragen</button>
+    <button class="plain-button" id="time-jump-cancel" type="button">Zeit korrigieren</button>
+  </div>
+</dialog>
+<dialog id="metadata-dialog" aria-labelledby="metadata-title">
+  <form id="metadata-form"><h2 id="metadata-title">Spielangaben erg&auml;nzen</h2><p class="dialog-copy">Diese Angaben wurden auf dem Foto nicht sicher erkannt.</p>
+    <label id="metadata-away-field">Gastmannschaft<input id="metadata-away" type="text" autocomplete="off" maxlength="100"></label>
+    <label id="metadata-number-field">Spielnummer<input id="metadata-number" type="text" autocomplete="off" maxlength="80"></label>
+    <div class="dialog-actions"><button class="secondary" id="cancel-metadata" type="button">Sp&auml;ter</button><button class="primary" type="submit">&Uuml;bernehmen</button></div>
+  </form>
+</dialog>
+<dialog id="shootout-dialog" class="shootout-dialog" aria-labelledby="shootout-title">
+  <h2 id="shootout-title" tabindex="-1" autofocus>Penaltyschie&szlig;en</h2>
+  <p id="shootout-score" class="shootout-score"></p>
+  <div id="shootout-list" class="shootout-list"></div>
+  <div id="shootout-entry" class="shootout-entry"></div>
+  <p class="dialog-copy small-note">Nur der Sieger bekommt ein Tor zum Ergebnis der regul&auml;ren Spielzeit. Versuch antippen zum L&ouml;schen.</p>
+  <button id="shootout-done" type="button" class="primary full">Fertig</button>
+</dialog>
+<dialog id="quick-menu" class="quick-menu" aria-label="Men&uuml;">
+  <button type="button" class="menu-item" id="show-signs"><span class="menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 3 3 6l2 5 2-1v11h10V10l2 1 2-5-5-3c-.5 1.5-2 2.5-4 2.5S8.5 4.5 8 3Z" fill="#fff" stroke="#293444" stroke-width="1.4" stroke-linejoin="round"/><path d="M9.5 6.5v14M12 7.4v13.1M14.5 6.5v14" stroke="#293444" stroke-width="1.5"/></svg></span><span>Schiri-Zeichen<small>Alle Zeichen nach H&auml;ufigkeit</small></span></button>
+  <button type="button" class="menu-item" id="menu-archive"><span class="menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.2l2 2h8.8A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5Z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg></span><span><span id="menu-archive-label">Archiv</span><small>Fr&uuml;here Spiele &ouml;ffnen</small></span></button>
+  <button type="button" class="menu-item" id="open-settings"><span class="menu-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 3 20 6v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6Z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg></span><span>Einstellungen<small id="menu-settings-note">Heimmannschaft</small></span></button>
+  <button type="button" class="menu-item" id="show-info"><span class="menu-icon info-icon" aria-hidden="true">i</span><span>Info<small>Version und Hinweise</small></span></button>
+</dialog>
+<dialog id="signs-dialog" class="signs-dialog" aria-labelledby="signs-title">
+  <div class="signs-head"><h2 id="signs-title" tabindex="-1" autofocus>Schiri-Zeichen</h2><button id="close-signs" type="button" class="plain-button" aria-label="Schlie&szlig;en">&times;</button></div>
+  <p class="dialog-copy">Sortiert nach H&auml;ufigkeit in EHV-Spielen. Zeichen antippen zum Vergr&ouml;&szlig;ern.</p>
+  <div id="signs-list" class="signs-list"></div>
+</dialog>
+<dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+  <div class="signs-head"><h2 id="settings-title" tabindex="-1" autofocus>Einstellungen</h2><button id="close-settings" type="button" class="plain-button" aria-label="Schlie&szlig;en">&times;</button></div>
+  <h3 class="settings-label">Heimmannschaft</h3>
+  <p class="dialog-copy">Wappen und Name f&uuml;r Kopfzeile, Bericht, Ausdruck und neue Spiele. Die Farben bleiben: Rot = Heim, Blau = Gast.</p>
+  <input id="club-search" class="club-search" type="search" placeholder="Verein suchen" autocomplete="off" aria-label="Verein suchen">
+  <div id="club-list" class="club-list" role="listbox" aria-label="Vereine im EHV NRW"></div>
+  <details class="club-custom"><summary>Verein fehlt? Eigenen Namen eintragen</summary><div class="custom-row"><input id="club-custom" type="text" maxlength="60" placeholder="Name der Heimmannschaft" aria-label="Name der Heimmannschaft"><button id="club-custom-save" type="button" class="primary">&Uuml;bernehmen</button></div></details>
+  <button id="settings-reset" type="button" class="secondary full">Zur&uuml;ck auf Neusser EV</button>
+</dialog>
+<dialog id="archive-dialog" class="archive-dialog" aria-labelledby="archive-title">
+  <h2 id="archive-title" tabindex="-1" autofocus>Archiv</h2>
+  <p class="dialog-copy">Die letzten 20 Spiele, nur auf diesem Ger&auml;t. &Ouml;ffnen holt ein Spiel zur&uuml;ck (z.&nbsp;B. zum erneuten Drucken).</p>
+  <div id="archive-list" class="archive-list"></div>
+  <button id="close-archive" type="button" class="primary full">Schlie&szlig;en</button>
+</dialog>
+<dialog id="detail-dialog" class="detail-dialog" aria-labelledby="detail-title">
+  <h2 id="detail-title" tabindex="-1" autofocus>Ereignis</h2>
+  <div id="detail-sheet" class="detail-sheet"></div>
+  <div id="detail-actions" class="dialog-actions detail-actions"></div>
+</dialog>
+<dialog id="review-dialog" class="review-dialog" aria-labelledby="review-title" aria-describedby="review-copy">
+  <form id="review-form"><h2 id="review-title" tabindex="-1" autofocus></h2><p id="review-copy" class="dialog-copy"></p><div id="review-body" class="review-body"></div>
+    <div id="review-actions" class="dialog-actions"></div>
+  </form>
+</dialog>
+<dialog id="operator-dialog" class="operator-dialog" aria-labelledby="operator-title">
+  <form id="operator-form">
+    <h2 id="operator-title">Spielbericht erstellt von:</h2>
+    <p class="dialog-copy">Einmal pro Spiel. Dein Name erscheint im Bericht und Ausdruck.</p>
+    <label for="operator-name">Name<input id="operator-name" type="text" autocomplete="name" autocapitalize="words" maxlength="100" enterkeyhint="done" placeholder="Vor- und Nachname"></label>
+    <div class="dialog-actions"><button id="operator-later" type="button" class="secondary">Sp&auml;ter</button><button class="primary" type="submit">Speichern</button></div>
+  </form>
+</dialog>
+<dialog id="info-dialog" class="info-dialog" aria-labelledby="info-title">
+  <img src="nev-logo.png" alt="Neusser EV"><h2 id="info-title">eGrep Notes</h2><p class="version" id="info-version">Version</p>
+  <p>Offline-Spielnotizen f&uuml;r Eishockey: Tore, Assists, Strafen, Penaltys, Torwartwechsel, Timeouts, Notizen und Penaltyschie&szlig;en. Mit Fotoerkennung, schnellen Eingabeschritten und PDF-/Druckausgabe.</p>
+  <p><strong>Michael Nowak &amp; KI</strong></p>
+  <p class="info-link"><a href="https://cappy0815.github.io/" id="project-link">cappy0815.github.io</a><br><small>Projektseite mit Updates und weiteren Apps</small></p>
+  <p class="legal">Private Spielnotizen &ndash; kein Ersatz f&uuml;r den offiziellen eGrep-Spielbericht.<br>Alle Spieldaten und die Texterkennung bleiben auf diesem Ger&auml;t.</p>
+  <p class="legal">OCR: Tesseract.js, deutsches Sprachmodell (tessdata_fast) &middot; Apache License 2.0<br>Heimmannschaft: <span id="info-club">Neusser EV</span>. Vereinslogos: EHV NRW / hockeydata, Marken der Vereine. Strafliste: Kurzbezeichnungen, kein automatisches Strafma&szlig;.</p>
+  <button id="close-info" class="primary full" type="button">Schlie&szlig;en</button>
+</dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="logic.js"></script><script src="signs.js"></script><script src="teamlogos.js"></script><script src="clubs.js"></script><script src="ocr-data.js"></script><script src="tesseract.min.js"></script><script src="ocr.js"></script><script src="app.js"></script>
+</body>
+</html>
