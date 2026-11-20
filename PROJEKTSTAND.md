@@ -1,28 +1,24 @@
-# Projektstand eGrep Notes 3.0
+# Projektstand eGrep Notes 3.1
 
-20.11.2026. Autor Michael Nowak & KI.
-Paket de.michaelnowak.egrepnotes; versionCode 30; Datenformatversion 9 (unveraendert).
-Signiert mit dem Original-Schluessel (Zertifikat EE:80:AC:0D...2D:77); der Schluessel liegt nicht im Repo.
+18.10.2026. Autor Michael Nowak & KI.
+Paket de.michaelnowak.egrepnotes; versionCode 31; Datenformatversion 9.
+Aufbauend auf 2.7. Offline-Build mit Python/OpenSSL; Java/Gradle-Referenz enthalten.
+Signiert mit dem Original-Schluessel aus der PRIVAT-Sicherung 1.4 (Zertifikat EE:80:AC:0D...2D:77).
 
-Aufbau seit 3.0:
-- build_apk.py erzeugt Manifest und resources.arsc (byte-gleich zu 2.9 geprueft), packt die Oberflaeche
-  aus app/src/main/assets und signiert (JAR/v1, OpenSSL CMS).
-- native/classes.dex ist der unveraenderte Android-Host aus 2.9 (WebView, Kamera/Galerie, Drucken,
-  Projektlink, Bildschirm-an, Zurueck-Taste, App-Verknuepfung "Schiri-Zeichen"). Der Generator-Quelltext
-  dafuer ist verloren; native/decompiled/ enthaelt eine dekompilierte Lesefassung (androguard), die nicht
-  zum Bauen dient. Aenderungen am nativen Teil brauchen einen neuen Host (z. B. Java + Android SDK).
-- assets/ocr-data.js (Tesseract-Worker, Core, deutsches Modell) liegt fertig gebuendelt bei.
-
-Neu 3.0: assets/clubs.js (window.EGREP_CLUBS: id, name, full, region, logo; 43 EHV-Mitgliedsvereine,
-WebP 96 px; Neusser EV -> nev-logo.png). localStorage 'egrep-settings' {homeClub:id} oder {homeCustom:Name}.
-app.js: homeClub(), freshState() (Heimname neuer Spiele), applyClub() (Kopfzeile, Info), Dialog
-#settings-dialog (Suche #club-search, Liste #club-list, eigener Name #club-custom, #settings-reset),
-Menuepunkt #open-settings. teamLogo(): Heimname = gewaehlter Verein -> dessen Wappen. Farben unveraendert.
-Neu 2.9: Strafe-Felder servedBy/servedLater, L.needsServer, Wizard-Stufen 'served'/'servedBy';
-OCR-Zweitdurchgang fuer Pos./Nr.; PDF-Import mit pdf.js 3.11.174 (isEvalSupported:false);
-App-Verknuepfung (index.html#signs, window.egrepOpenSigns).
-
-
+Neu 3.1: Wischen zwischen den Reitern (touchstart/touchend auf <main>, Schwelle max(60 px, 18 % Breite), dx >= 2*dy,
+< 700 ms; nicht in Eingabefeldern, seitlich scrollenden Bereichen oder bei offenem Dialog), Schalter #swipe-toggle,
+settings.swipe (Standard an).
+Neu 3.0: assets/clubs.js (window.EGREP_CLUBS: id, name, full, region, logo; 43 EHV-Vereine, Neusser EV -> nev-logo.png).
+localStorage 'egrep-settings' {homeClub:id | homeCustom:Name, swipe}. homeClub(), freshState(), applyClub(),
+#settings-dialog, Menuepunkt #open-settings. Farben unveraendert.
+Neu 2.9: Strafe-Felder servedBy (Nummer) und servedLater (bool), L.needsServer(state,e) (Bank, TW in
+Aufstellung oder L.goalieAt), L.servedLabel; participants enthaelt 'Sitzt ab'. Wizard-Stufen 'served' (Raster,
+data-served-number) und 'servedBy' (Ziffernblock); finishPenalty() vor saveDraft. DATA_VERSION bleibt 9.
+OCR: withNrHeaders, numberStrips/stripWords/missingNumberCells (zweiter Durchgang nur Ziffern), Split am
+Gast-"Pos."-Kopf, sideEnd je Seite, alt -> check. PDF: assets/pdf.min.js + pdf.worker.min.js (pdf.js
+3.11.174 legacy, Apache-2.0, ohne Worker, isEvalSupported:false), EgrepOCR.readPdf/pdfTextToTsv/startImage.
+Nativ: dynamische Verknuepfung 'signs' (ShortcutManager in onCreate, try/catch), index.html#signs,
+onNewIntent -> window.egrepOpenSigns().
 Neu 2.8: Kopfzeile #open-menu oeffnet <dialog id="quick-menu"> mit #show-signs, #menu-archive, #show-info.
 Neu 2.7: Ereignistypen 'penaltyshot' (player, scored:boolean; L.isGoal) und 'note' (text, team '' = Allgemein,
 L.cleanNote, NOTE_MAX 300); L.emptyNetGoal(state,e) ueber goalieAt des Gegners. Wizard-Stufen 'psresult', 'note';
@@ -56,3 +52,23 @@ Neu 1.9: Nummernraster (Stage 'pick') fuer Tor/Strafe, Tap-Reihenfolge T/A1/A2, 
 als Ausweg ('Andere Nummer') und ohne Aufstellung.
 Neu 1.8: OCR fuer echte eGrep-Boegen: Tabellenlinien entfernen (removeTableLines), Pos./Nr.-
 Grenze aus Spaltenkoepfen, Namenszuordnung geometrisch, Namensende an "Lizenz", Klammer-
+nummern/Zusaetze aus Namen entfernt, G in Pos.-Spalte ab 35 %.
+Grenze der Aussage: abgestimmt und gemessen an ZWEI echten Fotos (per Chat uebertragen, ggf.
+komprimiert). Andere Lichtverhaeltnisse, Winkel oder Druckerqualitaet koennen abweichen.
+Neu 1.7: TSV-Fix (Bildgroesse), Komma im Namen erlaubt.
+Neu 1.6: Zusammenfassung nach Eingabe (gespeichert, OK/Aendern/Verwerfen), Detailansicht
+per Antippen, Uhrzeit fett, Ereignisarten als Zeilen mit eigenen Farben, gelbe Namensmarkierung
+statt Namensliste.
+Seit 1.5: Reihenfolge Aktion vor Mannschaft, Timeout mit Ein-TO-Nachfrage,
+festes Eingabefenster mit grossem Ziffernblock, 8 Schnellstrafen, Verlauf neueste
+Eingabe oben, deutsches OCR-Modell, OCR-Pruefdialoge (Namen, Torwarte, Starting-Goalie).
+Bericht/Druck unveraendert ausser zusaetzlicher Timeout-Zeile.
+
+Behoben in 1.7: parseRosterFromTsv verwarf die erste TSV-Zeile als Kopfzeile, obwohl
+Tesseract.js keine liefert; verloren ging die Seitenzeile mit der Bildgroesse. Jetzt wird nur
+eine echte Kopfzeile ("level...") uebersprungen. Die Schwellwerte des Parsers (Anteile der
+Seitenbreite/-hoehe) stammen aus v1.0 und wurden nicht an echten Fotos neu kalibriert:
+Erkennung mit einem echten Foto einer eGrep-Mannschaftsmeldung pruefen.
+
+Native Host unveraendert (classes.dex bytegleich zu 1.4 mit gleicher Signatur).
+Keine reale Android-VM; Browser-, OCR-Laufzeit-, Druck- und APK-Tests siehe TESTERGEBNISSE.

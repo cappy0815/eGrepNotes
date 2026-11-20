@@ -1,9 +1,13 @@
 """Actual shipped HTML/CSS print-fit regression. Does not claim an Android printer test."""
 from pathlib import Path
 import json,re,sys
-import fitz
+try:
+ import fitz
+except ImportError:  # 1.5: fallback to poppler-utils (pdfinfo/pdftotext/pdftoppm) when PyMuPDF is unavailable
+ fitz=None
+import subprocess,html as _html
 from playwright.sync_api import sync_playwright
-from uihelper import boot,state
+from test_ui import boot,state
 OUT=Path(sys.argv[1]) if len(sys.argv)>1 else Path('/mnt/data/egrep_v14_tests/print')
 OUT.mkdir(parents=True,exist_ok=True)
 KEY='nev-spielnotiz-v0.1'
@@ -22,8 +26,24 @@ def fixture(count,long=False):
  s={'version':6,'currentPeriod':3,'meta':{'date':'2026-10-08','number':'DRUCKTEST_'+str(count),'operatorName':'Max Mustermann','operatorPrompted':True},'home':{'name':'Neusser EV','players':home},'away':{'name':'Gastmannschaft Muster','players':away},'events':events}
  return s
 
+class _PopplerPage:
+ def __init__(self,path,index,words,w,h):self.words=words;self.rect=type('R',(),{'width':w,'height':h})()
+ def get_text(self,mode=None):return self.words if mode=='words' else ''
+def _poppler(path):
+ xml=subprocess.check_output(['pdftotext','-bbox',str(path),'-']).decode()
+ pages=[]
+ for chunk in xml.split('<page ')[1:]:
+  import re
+  w,h=map(float,re.search(r'width="([\d.]+)" height="([\d.]+)"',chunk).groups())
+  words=[(float(a),float(b),float(c),float(d),_html.unescape(t)) for a,b,c,d,t in re.findall(r'<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">([^<]*)</word>',chunk)]
+  pages.append(_PopplerPage(path,len(pages),words,w,h))
+ return pages
 def inspect(path,s,one=True):
- d=fitz.open(path);text=' '.join(''.join(pg.get_text() for pg in d).split())
+ if fitz is None:
+  d=_poppler(path);text=' '.join(subprocess.check_output(['pdftotext','-layout',str(path),'-']).decode().split())
+  text=' '.join(text.split())
+ else:
+  d=fitz.open(path);text=' '.join(''.join(pg.get_text() for pg in d).split())
  assert len(d)==1 if one else len(d)>1,(path,len(d))
  assert 'Spielbericht erstellt von: Max Mustermann' in text
  assert f"{len(s['events'])} Ereignisse" in text
@@ -36,11 +56,13 @@ def inspect(path,s,one=True):
  for i,pg in enumerate(d):
   for w in pg.get_text('words'):
    assert w[0]>=30 and w[2]<=pg.rect.width-30 and w[1]>=30 and w[3]<=pg.rect.height-30,(path,i,w)
- if one:d[0].get_pixmap(matrix=fitz.Matrix(1.5,1.5)).save(str(path.with_suffix('.png')))
+ if one:
+  if fitz is None:subprocess.run(['pdftoppm','-png','-r','110','-singlefile',str(path),str(path.with_suffix(''))],check=True)
+  else:d[0].get_pixmap(matrix=fitz.Matrix(1.5,1.5)).save(str(path.with_suffix('.png')))
  return len(d)
 
 with sync_playwright() as pw:
- b=pw.chromium.launch(executable_path=__import__('os').environ.get('CHROMIUM','/usr/bin/chromium'),headless=True,args=['--no-sandbox']);results=[]
+ b=pw.chromium.launch(executable_path=__import__('os').environ.get('CHROMIUM',next((p for p in ['/usr/bin/chromium','/opt/pw-browsers/chromium'] if __import__('os').path.exists(p)),None)),headless=True,args=['--no-sandbox']);results=[]
  for count,long in [(0,False),(12,False),(30,False),(60,False),(120,False),(45,True)]:
   print('START',count,long,flush=True)
   s=fixture(count,long);p=b.new_page(viewport={'width':360,'height':640});boot(p,{KEY:json.dumps(s)})

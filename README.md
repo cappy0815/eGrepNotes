@@ -14,6 +14,7 @@ Private Notiz-App. Kein Bezug zum offiziellen eGrep, zum DEB oder zum EHV NRW.
 - Drei Zeitmodi pro Spiel: Uhr läuft ab, Uhr läuft auf (Hallenuhr, jedes Drittel ab 0:00), Spielzeit 0:00 bis 60:00
 - Strafmaß 2, 2+2, 5, 10 Min. und Spieldauer, „+10 Min.“ als zweiter Eintrag
 - Bei Torwart- und Bankstrafen fragt die App, wer die Strafe absitzt (oder „später eintragen“)
+- Wischen zwischen Aufstellung, Spiel und Bericht
 - Strafen nach Häufigkeit in EHV-Spielen sortiert; Schiri-Zeichen einblendbar, über das Menü und per langem Druck aufs App-Symbol
 - Torwart raus fürs leere Tor; Empty-Net-Tore werden automatisch markiert
 - Hinweis auf mögliche Über- und Unterzahltore (nur Hinweis, keine Regelentscheidung)
@@ -45,8 +46,10 @@ Siehe [CHANGELOG.md](CHANGELOG.md).
 ```
 app/src/main/assets/   Oberfläche: index.html, styles.css, logic.js, app.js, ocr.js, Logos, OCR, pdf.js
 app/src/main/res/      App-Symbol
-native/                Android-Host als fertiger Bytecode (classes.dex) + Lesefassung, siehe native/README.md
-build_apk.py           Manifest, Ressourcen, Paket und Signatur (Python 3 + OpenSSL, kein Android SDK)
+app/src/main/java/     ältere Java-Referenz des Android-Hosts (nicht gepflegt, wird für die APK nicht benutzt)
+native_builder.py      erzeugt den Android-Host (classes.dex) direkt als Bytecode
+build_apk.py           Manifest, Ressourcen, OCR-Paket, Signatur (Python 3 + OpenSSL, kein Android SDK)
+docs/ENTWICKLUNG.md    ausführliche Entwicklungsnotizen
 tests/                 Node (Logik, OCR-Hilfen) und Playwright/Chromium (Oberfläche, Druck), APK-Prüfungen
 ```
 

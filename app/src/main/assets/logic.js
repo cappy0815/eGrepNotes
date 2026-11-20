@@ -5,7 +5,7 @@
   else root.EgrepLogic = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  const VERSION = '3.0';
+  const VERSION = '3.1';
   const DATA_VERSION = 9;
   const PERIOD_SECONDS = 1200;
   // 2.1: sorted by frequency in a sample of 27 EHV NRW games (241 penalties, hockeydata game reports,

@@ -4,8 +4,9 @@ shortcut itself on the launcher is not testable here). Fantasy names only."""
 from pathlib import Path
 import json,os,sys
 from playwright.sync_api import sync_playwright,expect
-from uihelper import boot,state,skip_operator,CHROMIUM
+from test_ui import boot,state,skip_operator
 OUT=Path(sys.argv[1]) if len(sys.argv)>1 else Path('/tmp/egrep-v29');OUT.mkdir(parents=True,exist_ok=True)
+CHROMIUM=os.environ.get('CHROMIUM',next((p for p in ['/usr/bin/chromium','/opt/pw-browsers/chromium'] if os.path.exists(p)),None))
 ASSETS=Path(__file__).resolve().parents[1]/'app/src/main/assets'
 KEY='nev-spielnotiz-v0.1'
 HOME=[('2','Sommer, Tim',True),('1','Becker, Lena',True),('9','Engel, Ola',False),('12','Neumann, Mia',False),('16','Maier, Max',False),('23','Wenz, Luca',False)]
@@ -29,7 +30,7 @@ def main():
     b=pw.chromium.launch(executable_path=CHROMIUM,headless=True,args=['--no-sandbox','--allow-file-access-from-files']);errors=[]
     for size in [(320,480),(360,640),(412,915)]:
       p=b.new_page(viewport={'width':size[0],'height':size[1]});p.on('pageerror',lambda e:errors.append(str(e)))
-      boot(p,{KEY:json.dumps(roster())});game(p)
+      boot(p,{KEY:json.dumps(roster())},auto_ok=False);game(p)
       # 1) Goalie #2 (TW in roster): ask who serves; grid without goalies and without #2.
       start(p,'1900','penalty','home');p.locator('[data-pick-number="2"]').click();p.locator('[data-penalty="Bandencheck"]').click()
       expect(p.locator('#wizard-title')).to_have_text('Wer sitzt die Strafe ab?')

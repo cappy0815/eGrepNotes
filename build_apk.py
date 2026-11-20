@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """Build the SDK-independent eGrep Notes APK.
 
-The host is deliberately tiny: an Android WebView with camera/gallery, printing,
-project link and the app shortcut. Since 3.0 its bytecode is the prebuilt
-native/classes.dex taken unchanged from version 2.9 (see native/README.md);
-manifest and resources are generated here. The complete offline UI and OCR
-runtime stay as readable assets below app/src/main/assets.
+The host is deliberately tiny: an Android WebView, external-link handling and
+an image file chooser. The complete offline UI and OCR runtime stay as readable
+assets below app/src/main/assets.
 """
 
 from __future__ import annotations
@@ -28,7 +26,6 @@ ROOT = Path(__file__).resolve().parent
 ASSET_DIR = ROOT / "app/src/main/assets"
 HTML_PATH = ASSET_DIR / "index.html"
 LAUNCHER_ICON = ROOT / "app/src/main/res/drawable/nev_spielnotiz.png"
-NATIVE_DEX = ROOT / "native/classes.dex"
 BUILD_DIR = ROOT / "build"
 CONFIG = json.loads((ROOT / "version.json").read_text(encoding="utf-8"))
 APP_NAME = CONFIG["name"]
@@ -41,6 +38,24 @@ CERTIFICATE = ROOT / "signing/egrep-notes-cert.pem"
 INIT_SIGNING = False
 
 NO_INDEX = 0xFFFFFFFF
+
+
+def build_embedded_ocr_data() -> bytes:
+    """Bundle OCR runtime data without file/network requests from the WebView."""
+    worker_path = ASSET_DIR / "worker.min.js"
+    core_path = ASSET_DIR / "tesseract-core-lstm.wasm.js"
+    language_path = ASSET_DIR / "tessdata/deu.traineddata.gz"
+    worker = worker_path.read_text(encoding="utf-8")
+    old = '"string"==typeof t?t:t.data'
+    if worker.count(old) != 1:
+        raise RuntimeError("Unexpected Tesseract worker format")
+    worker = worker.replace(old, '"string"==typeof t?t:t.code')
+    values = {
+        "worker": base64.b64encode(worker.encode("utf-8")).decode("ascii"),
+        "core": base64.b64encode(core_path.read_bytes()).decode("ascii"),
+        "language": base64.b64encode(language_path.read_bytes()).decode("ascii"),
+    }
+    return ("window.NEV_OCR_DATA=" + __import__("json").dumps(values, separators=(",", ":")) + ";").encode("ascii")
 
 
 def uleb128(value: int) -> bytes:
@@ -58,6 +73,11 @@ def uleb128(value: int) -> bytes:
 def align(buffer: bytearray, boundary: int = 4) -> None:
     while len(buffer) % boundary:
         buffer.append(0)
+
+
+def build_dex(html: str) -> bytes:
+    from native_builder import build_native_dex
+    return build_native_dex(PACKAGE_NAME)
 
 
 class StringPool:
@@ -353,7 +373,7 @@ def main() -> int:
     PRIVATE_KEY = options.signing_dir / "egrep-notes-key.pem"
     CERTIFICATE = options.signing_dir / "egrep-notes-cert.pem"
     INIT_SIGNING = options.init_signing
-    if not HTML_PATH.exists() or not LAUNCHER_ICON.exists() or not NATIVE_DEX.exists():
+    if not HTML_PATH.exists() or not LAUNCHER_ICON.exists():
         print("Missing UI source or icon artwork.", file=sys.stderr)
         return 1
 
@@ -365,10 +385,12 @@ def main() -> int:
         "AndroidManifest.xml": build_manifest(),
         "resources.arsc": build_resources(),
         "res/drawable/nev_spielnotiz.png": LAUNCHER_ICON.read_bytes(),
-        # Since 3.0 the native host is a prebuilt binary (see native/README.md).
-        "classes.dex": NATIVE_DEX.read_bytes(),
+        "classes.dex": build_dex(html),
+        "assets/ocr-data.js": build_embedded_ocr_data(),
     }
-    embedded_sources: set[str] = set()
+    embedded_sources = {
+        "ocr-data.js", "worker.min.js", "tesseract-core-lstm.wasm.js", "tessdata/deu.traineddata.gz"
+    }
     for asset in sorted(ASSET_DIR.rglob("*")):
         if asset.is_file() and asset.relative_to(ASSET_DIR).as_posix() not in embedded_sources:
             entries[f"assets/{asset.relative_to(ASSET_DIR).as_posix()}"] = asset.read_bytes()

@@ -1,35 +1,204 @@
-Teststand 3.0 - 20.11.2026
-PASS: test_v30_ui (320x480, 360x640, 412x915): Einstellungen im Menue, 43 Vereine mit Wappen, Suche
-      (Umlaute egal, voller Vereinsname), Neusser EV voreingestellt und "Zurueck auf Neusser EV",
-      eigener Name mit neutralem Wappen, Kopfzeile/Info/Tafel/Bericht/Druck, Farben unveraendert,
-      leeres Spiel uebernimmt den Verein, laufendes Spiel behaelt seine Teams, neues Spiel uebernimmt
-      den Verein, kaputte Einstellung faellt auf Neusser EV zurueck, Android-Zurueck schliesst.
-PASS: test_v29_ui und test_v29_logic (aus 2.9 uebernommen): Absitzender bei Torwart-/Bankstrafen,
-      App-Verknuepfung im Browser, OCR-Hilfen, PDF-Text.
-PASS: test_logic, test_parser, test_goalie_parser, test_penalty_duration (an die Strafdauern seit 2.0
-      angepasst), test_print (A4), test_native_camera (simulierte Android-APIs inkl. App-Verknuepfung),
-      test_apk 3.0, test_upgrade 2.9 -> 3.0 (gleiches Zertifikat, hoeherer versionCode).
-PASS: Nachbau 2.9: Mit den 2.9-Dateien erzeugt build_apk.py inhaltlich exakt die veroeffentlichte
-      2.9-APK (alle Eintraege ausser der Signatur byte-gleich).
-Nicht mehr vorhanden: die UI-Testreihe aus 1.5 bis 2.8 und die OCR-Messung an echten Fotos (ging mit dem
-      alten Arbeitsordner verloren; die Fotos waren nie Teil des Projekts).
+Teststand 3.1 - 20.11.2026 (auf dem Original-Quellprojekt 2.9)
+PASS: test_v30_ui (320x480, 360x640, 412x915): Einstellungen, 43 Vereine mit Wappen, Suche (Umlaute egal,
+      voller Name), Neusser EV voreingestellt und zuruecksetzbar, eigener Name mit neutralem Wappen,
+      Kopfzeile/Info/Tafel/Bericht/Druck, Farben unveraendert, leeres Spiel uebernimmt den Verein, laufendes
+      behaelt seine Teams, neues Spiel uebernimmt ihn, kaputte Einstellung -> Neusser EV, Android-Zurueck.
+PASS: test_v30_swipe (simulierte Touch-Ereignisse): links/rechts, kein Umlauf, kurze/langsame/schraege
+      Bewegungen, Eingabefelder und offene Fenster ignoriert, Schalter (bleibt bei Vereinswechsel).
+PASS: alle Tests aus 2.9 (Node-Logik 1.4-2.9, UI 1.x-2.9, PDF, Druck). Angepasst: Versionspruefungen
+      erlauben 3.x; test_v28_ui erwartet den neuen Menuepunkt "Einstellungen".
+PASS: Nachbau: Das Original-Quellprojekt 2.9 erzeugt inhaltlich exakt die veroeffentlichte 2.9-APK.
+PASS: test_apk 3.1, test_native_camera, test_upgrade 2.9 -> 3.1 (gleiches Zertifikat).
+Nicht neu gemessen: Texterkennung (ocr.js unveraendert seit 2.9).
+Nicht getestet: echtes Android-Geraet (echte Wischgesten, Zusammenspiel mit der Android-Zurueck-Geste).
+
+Teststand 2.9 - 15.11.2026
+PASS: test_v29_logic: Absitzender (TW laut Aufstellung, TW laut Torwartwechsel ohne Aufstellung, Bank,
+      Feldspieler ohne Frage), Text, Pruefung unbekannter Nummer, Migration; OCR: Nummernstreifen,
+      "G31" getrennt, fehlende Nummernzellen, fehlender "Nr."-Kopf ergaenzt, Torwart-Reihenfolge,
+      Nummernkonflikt markiert, 26 Spieler je Team, PDF-Text -> TSV, PDF-Erkennung.
+PASS: test_v29_ui (320x480, 360x640, 412x915): Frage "Wer sitzt die Strafe ab?" fuer TW und Bank,
+      Raster ohne Torwarte, Zurueck behaelt die Strafe, Andere Nummer, Spaeter eintragen, Feldspieler
+      ohne Frage, +10 bleibt offen, Anzeige in Zusammenfassung/Verlauf/Text/Druck/Speicher;
+      "Bank / Trainer"; Verknuepfung: echte Seite mit #signs oeffnet die Schiri-Zeichen.
+PASS: test_v29_pdf (echte Seite ueber file://, Fantasie-Aufstellung 22 + 26 Spieler im Layout des
+      Spielberichtsbogens): Text-PDF 48/48, Teams und Spielnummer richtig, 7/7 Torwarte, 0,4 s;
+      Scan-PDF (130 dpi) 38/48, 7/7 Torwarte, keine falschen, ca. 11 s. pdf.js erst bei Bedarf geladen.
+PASS: test_native_camera erweitert: dynamische Verknuepfung (Kennung, Text, Symbol, Intent
+      egrep://signs, SINGLE_TOP|CLEAR_TOP), Start mit #signs, laufende App ueber onNewIntent,
+      Start auch ohne Verknuepfungsdienst (simulierte Android-APIs).
+PASS: test_ui, test_v16_ui, test_v19_ui angepasst (Bankstrafe fragt jetzt nach dem Absitzenden);
+      test_ocr_runtime (synthetischer Bogen ohne Pos.-Kopf: Torwartmarke des Gastteams);
+      alle bisherigen Tests; test_apk 2.9; test_upgrade 2.8 -> 2.9 (gleiches Zertifikat).
+Messung mit echten Fotos (nur lokal, nicht im Projekt; Nummer + Nachname richtig):
+      U13-Bogen 47/49 (2.8: 5/49), U15-Bogen 41/42 (2.8: 24/42), Foto 1 33/35 (2.8: 33/35),
+      Foto 2 32/35 (2.8: 29/35). Torwarte bis auf einen richtig, keine falschen.
+Nicht getestet: echtes Android-Geraet (Verknuepfung im Launcher, PDF-Auswahl im Dateidialog),
+      echtes PDF aus eGrep (lag nicht vor).
+XML-Datei (gr...-egrep.xml): verschluesselt ("[HD]" + Base64, Entropie nahe 8 Bit/Byte), daher
+      nicht als Quelle nutzbar. Es wurde nicht versucht, sie zu entschluesseln.
+
+Teststand 2.8 - 13.11.2026
+PASS: test_v28_ui (320x480, 360x640, 412x915): Kopfzeile passt; Menue auf allen Reitern mit
+      Schiri-Zeichen / Archiv / Info; jeder Eintrag oeffnet sein Fenster und schliesst das Menue;
+      Zurueck und Tippen daneben schliessen; Archiv-Anzahl; Projektseiten-Link im Info-Fenster.
+PASS: test_native_camera erweitert: nur https://cappy0815.github.io/ oeffnet den Browser (VIEW-Intent),
+      andere Adressen bleiben gesperrt, fehlender Browser fuehrt nicht zum Absturz (simulierte Android-APIs).
+PASS: test_upgrade: nativer Teil darf sich aendern und wird dann mit dem Bytecode-Test geprueft.
+PASS: test_period_ui, test_v22_ui, test_v25_ui angepasst (Info und Schiri-Zeichen jetzt ueber das Menue);
+      alle bisherigen Tests; test_apk 2.8; test_upgrade 2.7 -> 2.8 (gleiches Zertifikat).
+Nicht getestet: echtes Android-Geraet (insbesondere das Oeffnen des Browsers).
+
+Teststand 2.7 - 08.11.2026
+PASS: test_v27_logic: Penalty (Pflichtfelder, Tor zaehlt in Spielstand und Drittel, kein Tor nicht,
+      kein PP-Hinweis), Notiz (allgemein/Team, leer abgelehnt, Zeilenumbrueche bereinigt, max. 300),
+      Empty-Net-Erkennung (nur Gegner, nur solange leer), Migration.
+PASS: test_v27_ui (320x480, 360x640, 412x915): sechs Ereignisarten passen; Penalty ueber Raster und
+      Tastatur, Zurueck, Tor/kein Tor; Notiz allgemein und fuer Team, Bearbeiten; "Allgemein" nur bei
+      Notiz; EN-Tor in Zusammenfassung, Verlauf, Bericht, Druck und Text; Speicherstand migriert.
+PASS: test_v15/test_v16 angepasst (sechs Ereignisarten, neue Aufteilung); alle bisherigen Tests;
+      test_apk 2.7; test_upgrade 2.6 -> 2.7 (gleiches Zertifikat).
+Nicht getestet: echtes Android-Geraet.
+Ungeprueft (Regelwerk): ob ein Penalty-Tor eine laufende kleine Strafe beendet; der Ueberzahl-Hinweis
+      beruecksichtigt Penalty-Tore deshalb nicht.
+
+Teststand 2.6 - 02.11.2026
+PASS: test_v26_ui (320x480, 360x640, 412x915; 4 Namensfaelle: SpG lang/kurz, zwei lange, kurz/kurz,
+      langer Name ohne Logo): Tore, Doppelpunkt und Logos auf einer Hoehe; "Im Tor" auf einer
+      Hoehe; Namen max. 2 Zeilen; kein Ueberlauf; kein Ring; Bericht: Logos 40 px neben dem
+      Ergebnis, Namen vollstaendig und auf einer Hoehe darunter.
+      Gegenprobe: an 2.5 schlaegt der Test an (Tore 13 px versetzt bei "Spg Neusser EV GSC Moers").
+PASS: test_v25_ui angepasst (kein Ring); alle bisherigen Tests; test_apk 2.6;
+      test_upgrade 2.5 -> 2.6 (gleiches Zertifikat).
 Nicht getestet: echtes Android-Geraet.
 
-Teststand 1.4 - 08.10.2026
-PASS: Node logic (8 groups), penalty durations, OCR parser and synthetic goalie parser.
-PASS: browser UI, period UI, operator/photo UI, new penalty UI.
-PASS: five mobile penalty forms including 320x480 without required scrolling.
-PASS: actual CSS-to-PDF output for 0/12/30/60/120 events and 45 long-text events.
-PASS: one page, all tested names and events preserved, no clipped page bounds.
-PASS: readable multipage switch and low-font-size warning.
-PASS: APK archive/CMS/entry hashes, manifest/version, DEX checksums/native simulation.
-PASS: same package and signing certificate as 1.3, higher versionCode, unchanged OCR.
-SKIPPED: real browser HTTP localStorage reload blocked by environment.
-NOT TESTED: real Android device, Android VM verifier, installation, actual camera,
-actual starting-goalie image, real printer/system print dialog.
-Build/archive recovery proof is verified separately after packaging.
+Teststand 2.5 - 02.11.2026
+PASS: test_v25_logic: Logo-Daten, Zuordnung exakt/Gross-Klein/Leerzeichen/Altersklasse/SpG/
+      unbekannt/keine Prototyp-Schluessel; 21 Zeichen inkl. korrigierter Cross-Check/Haken.
+PASS: test_v25_ui (320x480, 360x640, 412x915): Kopfzeilen-Knopf passt, auf allen Reitern;
+      21 Zeichen mittig; Vergroessern/Verkleinern; Zurueck schliesst; Logos in Anzeigetafel,
+      Teamauswahl, Bericht, Druck mit Farbring; Rand Rot/Blau unveraendert; unbekannter
+      Verein -> Initiale.
+Gefunden und behoben: Logos ueber dem Namen machten die Anzeigetafel hoeher; test_v15_ui
+      meldete, dass der neueste Verlaufseintrag bei 360x640 nicht mehr ganz sichtbar war.
+      Logos stehen jetzt neben der Torzahl, Tafel mit und ohne Logo gleich hoch (111 px).
+PASS: alle bisherigen Tests; test_apk 2.5; test_upgrade 2.4 -> 2.5 (gleiches Zertifikat).
+Nicht getestet: echtes Android-Geraet.
 
-Print measurements (point size depends on content):
+Teststand 2.4 - 24.10.2026
+PASS: test_v24_logic: Hallenuhr aufwaerts 0:00-20:00 jede Sekunde hin und zurueck, ungueltig
+      > 20:00, Reihenfolge-Pruefung bei steigender Uhr, drei Modi, Migration 2.2/2.3.
+PASS: test_v24_ui (320x480, 360x640, 412x915): Knopf reihum Uhr ab/Uhr auf/Spielzeit; 5:12
+      im 1. Drittel -> Restzeit 14:48, Zusammenfassung 5:12; kleinere Zeit -> Neues Drittel
+      oder Nachtrag; groessere Zeit ohne Frage; > 20:00 ungueltig; Verlauf/Bearbeiten/
+      Bericht/Druck/Text mit Hallenuhr; Rueckgaengig behaelt Modus; Spiel aus 2.2/2.3 ->
+      "Spielzeit"; Schiri-Bilder und Beschriftung mittig (max. 1,5 px Abweichung; 2.3 bis
+      50 px gemessen).
+PASS: test_v22 angepasst (Modus heisst jetzt "Spielzeit"); alle bisherigen Tests;
+      test_apk 2.4; test_upgrade 2.3 -> 2.4 (gleiches Zertifikat).
+Nicht getestet: echtes Android-Geraet.
+
+Teststand 2.3 - 19.10.2026
+PASS: test_v21_ui erweitert: alle Beschriftungen liegen innerhalb ihrer Karte (Normal- und
+      grosse Schrift 16 px, 320x480/360x640/412x915). Gegenprobe: an 2.2 schlaegt der Test an
+      (14 Karten betroffen), an 2.3 nicht.
+PASS: alle bisherigen Tests; test_apk 2.3; test_upgrade 2.2 -> 2.3 (gleiches Zertifikat).
+Nicht getestet: echtes Android-Geraet.
+
+Teststand 2.2 - 19.10.2026
+PASS: test_v22_logic: Spielzeit -> Drittel/Restzeit inkl. Drittelenden (20:00, 40:00, 60:00),
+      ungueltige Eingaben (> 60:00, Sekunden > 59), Hin- und Rueckrechnung fuer 0:00-60:00
+      in 7-s-Schritten, Standard "Uhr ab", Migration.
+PASS: test_v22_ui (320x480, 360x640, 412x915): Info-Version aus Logik; Bericht zeigt
+      Bedienernamen mit Stift; Umschalter passt auf 320 px; 2713 -> 2. Drittel, Uhr 12:47 ohne
+      Drittelwahl; Zusammenfassung mit Spielzeit; fruehere Zeit nur als Nachtrag; aktuelles
+      Drittel folgt; ungueltig > 60:00; Verlauf/Bearbeiten in Spielzeit; Rueckgaengig behaelt
+      Modus; Hinweis in Bericht und Druck; Neues Spiel -> "Uhr ab"; Archiv behaelt "Uhr auf";
+      Zurueckschalten laesst Eintraege unveraendert.
+PASS: alle bisherigen Tests; test_apk 2.2; test_upgrade 2.1 -> 2.2 (Zertifikat EE:80:AC:0D...2D:77).
+Nicht getestet: echtes Android-Geraet.
+
+Teststand 2.1 - 19.10.2026
+PASS: test_v21_logic: Reihenfolge nach Stichprobe, gleiche 32 Strafarten wie 2.0 (nur
+      umsortiert), keine Doppelten, "Sonstige" zuletzt; 21 Schiri-Zeichen, alle einer
+      vorhandenen Strafart zugeordnet, eingebettete JPEG-Bilder.
+PASS: test_v21_ui (320x480, 360x640, 412x915): 31 Strafarten + "Sonstige / eigener Text" in
+      einer Liste; Liste scrollt im festen Eingabefenster, Strafmass-Leiste bleibt stehen;
+      letzter Eintrag erreichbar und speicherbar; Schalter Schiri-Zeichen (21 Bilder,
+      10 x "kein Zeichen"), Einstellung bleibt fuer die naechste Strafe; Strafmass + Auswahl
+      mit Bildern; eigener Text; Bearbeiten markiert gespeicherte Strafart.
+PASS: alle bisherigen Tests (Node, Chromium-UI, Druck, OCR-Laufzeit, Native-Bytecode, APK).
+      Angepasst: 1.5-Tests pruefen die 8 frueheren Schnellstrafen jetzt in der neuen Liste;
+      Upgrade-Test akzeptiert unveraendertes deutsches Modell.
+PASS: test_apk 2.1; test_upgrade 2.0 -> 2.1 (gleiches Paket, gleiches Zertifikat
+      EE:80:AC:0D...2D:77, hoeherer versionCode).
+Nicht getestet: echtes Android-Geraet.
+
+Teststand 2.0 - 19.10.2026
+PASS: test_v20_logic: leeres Tor (gueltig/ungueltig, Vorschlag Rueckkehr, Migration), 2+2/10,
+      Penaltyschiessen (+1 nur Sieger, n.P., Gleichstand ohne Wirkung, Migration),
+      Drittelergebnisse, Ueber-/Unterzahl-Hinweis (2 Min. endet beim ersten Gegentor,
+      5 Min. voll, 10/Spieldauer ohne Wirkung, Gleichzahl ohne Hinweis).
+PASS: test_v20_ui (320x480, 360x640): Strafmass-Leiste passt ohne Scrollen; "+10 Min."
+      erzeugt zweiten Eintrag (gleiche Uhr/Nummer); Disziplinarstrafe-Knopf; 2+2;
+      Unterzahl-Hinweis und kein Hinweis bei Gleichzahl; leeres Tor raus/zurueck mit
+      Vorschlag und Anzeige "Im Tor"; Drittelzeile; Penaltyschiessen (Wechsel der Teams,
+      ohne Nummer, Loeschen, n.P. in Anzeige/Bericht/Text/Druck); Archiv (Neues Spiel,
+      Oeffnen, Loeschen, leeres Spiel wird nicht archiviert).
+PASS: alle bisherigen Tests (Zuruecksetzen jetzt einstufig mit Archiv; Loesch-Bestaetigung
+      weiter als gefaehrlich markiert; Strafmass-Liste erweitert).
+Echte Fotos unveraendert: Foto 1 15/17 + 18/18, Foto 2 14/17 + 15/18.
+PASS: test_v19_ui (320x480, 360x640, 412x915): Raster mit allen 19 Nummern aufsteigend, TW-
+      Markierung, Nachname; ab 640 px Hoehe ohne Scrollen; Taps 48/5/77 -> T/A1/A2; vierter Tap
+      ignoriert; 5 abwaehlen -> 48/77 rueckt nach; OK erst nach Auswahl; nur Schuetze; Strafe mit
+      einem Tap -> Strafart; Bankstrafe; Zurueck fuehrt ins Raster; Andere Nummer -> Ziffernblock
+      + Warnung bei fremder Nummer; Gast ohne Aufstellung -> Ziffernblock; Bearbeiten zeigt
+      gespeicherte Reihenfolge; Bearbeiten mit fremder Nummer -> Ziffernblock.
+PASS: alle bisherigen Tests (Ziffernblock-Ablaeufe ueber "Andere Nummer").
+Echte Fotos unveraendert: Foto 1 15/17 + 18/18, Foto 2 14/17 + 15/18.
+ECHTE FOTOS (2 eGrep-Mannschaftsmeldungen U15_LL_024, per Chat erhalten, nicht im Projekt):
+      volle App-Erkennung (ocr.js + deutsches Modell) in Chromium, Vergleich mit dem Bogen
+      (richtige Nummer UND Nachname):
+      Foto 1 (Handyfoto mit Rand): 1.7 Heim 6/17 Gast 13/18 -> 1.8 Heim 15/17 Gast 18/18
+      Foto 2 (Scan/Kopie):        1.7 Heim 9/17 Gast 12/18 -> 1.8 Heim 14/17 Gast 15/18
+      Torwarte erkannt (je 2): Foto 1 Heim 2, Gast 0; Foto 2 Heim 1, Gast 1 -> Nachfrage greift.
+      Restfehler: einzelne Buchstaben (z. B. Heibling, Zywickl, Mtalamx).
+PASS: test_v18_logic: gestrichelte/schraege/graue Linien entfernt, Ziffernstriche bleiben;
+      Klammernummer/Zusaetze aus Namen; G als 6 in Pos. wird keine Nummer; G mit 42 % in Pos.
+PASS: alle bisherigen Tests inkl. "Trikotnummer schlaegt Klammernummer" und
+      "unsichere Start-Markierung waehlt keinen Starter".
+Laufzeit Linienentfernung: ca. 0,3-0,4 s am PC (1800x1900 px); Handy nicht gemessen.
+PASS: test_v17_logic: TSV ohne Kopfzeile behaelt Seitenzeile, alle 6 von 6 Zeilen
+      (gleiche Eingabe im Parser 1.4-1.6: 3 von 6); TSV mit Kopfzeile weiter korrekt;
+      Komma im Namen erlaubt, andere Sonderzeichen weiter markiert.
+PASS: test_ocr_runtime mit zwei synthetischen Layouts: realistisch (Zusatzspalten,
+      Trainerzeile) und schlicht. Beide: alle 9 Namen inkl. Umlaute exakt.
+      Schlicht vorher (1.6): nur 1 Spieler je Team. Torwart-Markierungen im schlichten
+      Layout teils unter der 65-%-Sicherheitsschwelle -> Torwart-Nachfrage greift.
+Alle Tests aus 1.6 unveraendert PASS (Stand 1.6 folgt):
+PASS: Node logic, penalty durations, OCR parser, goalie parser, v15 logic, v16 logic
+      (Namensmarkierung uebersteht Neustart/Migration, Uhrzeit-Anzeige, Format 7 -> 8).
+PASS: browser UI, period UI, operator/photo UI, penalty UI, v15 UI (angepasst: Zusammenfassung
+      wird in alten Ablaeufen mit OK bestaetigt, Bearbeiten ueber Detailansicht).
+PASS: test_v16_ui (320x480, 360x640, 412x915): vier Ereigniszeilen untereinander in voller
+      Breite mit Farben gruen/orange/grau, ohne Scrollen; Zusammenfassung nach Tor/Strafe/
+      Bankstrafe/Timeout/Torwartwechsel in Reihenfolge Team, Ereignis, Nummer, (Assists),
+      Strafe; Ereignis vor OK gespeichert; Verwerfen + Rueckgaengig; Aendern; Detailansicht
+      per Antippen mit Bearbeiten -> "Aenderung gespeichert"; Zurueck-Taste; Uhrzeit im
+      Verlauf fett >= 17 px; Zusammenfassung passt ohne Scrollen auch auf 320x480;
+      gelbe Markierung nur in der Aufstellung.
+PASS: v15 UI OCR-Teil: gelbe Markierung (2 Namen), Hinweiszeile, bleibt nach Neustart,
+      verschwindet nach Oeffnen+Speichern, Rueckgaengig stellt sie wieder her;
+      Torwart-/Starting-Goalie-Nachfragen unveraendert.
+PASS: test_ocr_runtime: echte Tesseract-Erkennung mit deutschem Modell (synthetische Meldung).
+PASS: Druck 0/12/30/60/120/45-lang auf einer A4-Seite, Mehrseitenoption, Warnung.
+PASS: APK-Archiv/Signatur/Manifest 1.6/16, Native-Simulation; Vergleich mit 1.5:
+      gleiches Paket und Zertifikat, hoeherer versionCode, nativer Host bytegleich.
+PASS: Signatur mit Original-Schluessel, Zertifikat SHA-256
+      EE:80:AC:0D:7B:A2:EE:DE:E6:3C:00:65:4D:8E:95:EA:BA:B4:46:88:C1:B5:81:BB:FB:2C:A8:0A:23:35:2D:77
+NOT TESTED: echtes Handy, Installation, Kamera, echtes Foto einer eGrep-Meldung, Systemdruck.
+
+Print measurements:
 [
   {
     "fixture": "print-0.pdf",

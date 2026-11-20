@@ -4,7 +4,7 @@
 const assert=require('assert');
 const L=require('../app/src/main/assets/logic.js');
 const O=require('../app/src/main/assets/ocr.js');
-assert.ok(['2.9','3.0'].includes(L.VERSION));
+assert.ok(/^[23]\.\d+$/.test(L.VERSION));
 
 // ---- Wer sitzt die Strafe ab? ----
 const st=L.emptyState();

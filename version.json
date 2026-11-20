@@ -1,8 +1,1 @@
-{
-  "name": "eGrep Notes",
-  "version": "3.0",
-  "versionCode": 30,
-  "package": "de.michaelnowak.egrepnotes",
-  "minSdk": 26,
-  "targetSdk": 28
-}
+{"name":"eGrep Notes","version":"3.1","versionCode":31,"package":"de.michaelnowak.egrepnotes","minSdk":26,"targetSdk":28}

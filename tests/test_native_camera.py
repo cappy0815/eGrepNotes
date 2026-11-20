@@ -90,6 +90,9 @@ class Dex:
                 if n=='addFlags':argv[0]['flags']=argv[1];return argv[0]
                 if n=='newRawUri':return {'uri':argv[1]}
                 if n=='setClipData':argv[0]['clip']=argv[1];return None
+                if n=='startActivity':
+                    if env.get('no_browser'):raise JavaError('Landroid/content/ActivityNotFoundException;','No browser')
+                    env['opened']=argv[1];return None
                 if n=='startActivityForResult':
                     if env.get('launch_error'):raise JavaError('Ljava/lang/Exception;','No camera')
                     env['intent'],env['request']=argv[1:];return None
@@ -200,6 +203,12 @@ def verify_native(dex):
         assert next(x[2][1] for x in c if x[1]=='setMinMargins')['margins']==[500]*4
     e['print_available']=False;_,c=dex.run(LINK,'shouldOverrideUrlLoading',[{},view,'egrep://print'],e);assert not any(x[1]=='print' for x in c)
     _,c=dex.run(LINK,'shouldOverrideUrlLoading',[{},view,'https://untrusted.example'],e);assert all(x[1]=='equals' for x in c)
+    # 2.8: only the project page opens the browser (VIEW intent, new task); missing browser does not crash.
+    ret,c=dex.run(LINK,'shouldOverrideUrlLoading',[{},view,'https://cappy0815.github.io/'],e);o=e.pop('opened')
+    assert ret==1 and o['action']=='android.intent.action.VIEW' and o['data']=='https://cappy0815.github.io/' and o['flags']==0x10000000,o
+    for bad in ['https://cappy0815.github.io/evil','http://cappy0815.github.io/','https://example.com/']:
+        ret,_=dex.run(LINK,'shouldOverrideUrlLoading',[{},view,bad],e);assert ret==1 and 'opened' not in e,bad
+    e['no_browser']=True;ret,_=dex.run(LINK,'shouldOverrideUrlLoading',[{},view,'https://cappy0815.github.io/'],e);assert ret==1 and 'opened' not in e;e.pop('no_browser')
     dex.run(LINK,'onPageFinished',[{},view,'file:///android_asset/index.html'],e);assert owner['pageReady']==1
     # Selecting a gallery photo is a distinct action, never forces the camera.
     ret,c=dex.run(CHOOSE,'onShowFileChooser',[client,view,'cb1',{'capture':False}],e)
@@ -247,7 +256,7 @@ def verify_native(dex):
     for method,args in [('insert',[provider,URI,{}]),('delete',[provider,URI,None,None]),('update',[provider,URI,{},None,None])]:
         try:dex.run(PROVIDER,method,args,e);raise AssertionError('Write endpoint accepted')
         except JavaError as ex:assert ex.kind=='Ljava/lang/UnsupportedOperationException;'
-    print('PASS native bytecode: gallery, full-size camera, null result, cancellation, missing camera, stale callbacks, activity recovery, reset, isolated provider, keep-screen-on, print, app shortcut Schiri-Zeichen (start with #signs, running app via onNewIntent, start never blocked) and blocked navigation. Simulated Android APIs only.')
+    print('PASS native bytecode: gallery, full-size camera, null result, cancellation, missing camera, stale callbacks, activity recovery, reset, isolated provider, keep-screen-on, print, project link (only cappy0815.github.io, no crash without browser), app shortcut Schiri-Zeichen (start with #signs, running app via onNewIntent, start never blocked) and blocked navigation. Simulated Android APIs only.')
 
 if __name__=='__main__':
     with zipfile.ZipFile(sys.argv[1]) as z:verify_native(Dex(z.read('classes.dex')))

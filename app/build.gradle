@@ -1,0 +1,14 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'de.michaelnowak.egrepnotes'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'de.michaelnowak.egrepnotes'
+        minSdk 26
+        targetSdk 28
+        versionCode 31
+        versionName '3.1'
+    }
+}

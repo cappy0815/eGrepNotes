@@ -835,7 +835,7 @@ function renderClubList(){
 }
 function openSettings(){$('club-search').value='';renderClubList();$('settings-dialog').showModal();const sel=$('club-list').querySelector('.selected');if(sel)sel.scrollIntoView({block:'center'});}
 function setHomeClub(next){
-  const before=homeClub().name;settings=next;if(!saveSettings())toast('Einstellung konnte nicht gespeichert werden.');
+  const before=homeClub().name;settings=Object.assign(next,settings.swipe===false?{swipe:false}:{});if(!saveSettings())toast('Einstellung konnte nicht gespeichert werden.');
   const now=homeClub();applyClub();
   // An untouched game takes the new name; a running game keeps its teams.
   if(!state.events.length&&!state.home.players.length&&(!state.home.name||state.home.name===before)){state.home.name=now.name;persist();}
@@ -847,6 +847,28 @@ $('club-list').addEventListener('click',ev=>{const b=ev.target.closest('[data-cl
 $('club-custom-save').onclick=()=>{const n=$('club-custom').value.trim().slice(0,60);if(!n){$('club-custom').focus();return;}setHomeClub({homeCustom:n});};
 $('settings-reset').onclick=()=>setHomeClub({homeClub:DEFAULT_CLUB});
 applyClub();
+// 3.0: swipe between Aufstellung / Spiel / Bericht (left = next). Not on inputs, horizontal scroll areas
+// or while a dialog is open; switchable in the settings ("swipe": false).
+const SCREENS=['setup','game','report'];
+const swipeOn=()=>settings.swipe!==false;
+function scrollsSideways(n){for(;n&&n!==document.body;n=n.parentElement){const o=getComputedStyle(n).overflowX;if((o==='auto'||o==='scroll')&&n.scrollWidth>n.clientWidth+2)return true;}return false;}
+let swipeStart=null;
+document.querySelector('main').addEventListener('touchstart',ev=>{
+  swipeStart=null;if(!swipeOn()||ev.touches.length!==1||document.querySelector('dialog[open]'))return;
+  const t=ev.target;if(t.closest&&t.closest('input,textarea,select,[contenteditable],.no-swipe'))return;if(scrollsSideways(t))return;
+  const p=ev.touches[0];swipeStart={x:p.clientX,y:p.clientY,at:Date.now()};
+},{passive:true});
+document.querySelector('main').addEventListener('touchend',ev=>{
+  const s=swipeStart;swipeStart=null;if(!s||!ev.changedTouches.length||document.querySelector('dialog[open]'))return;
+  const p=ev.changedTouches[0],dx=p.clientX-s.x,dy=p.clientY-s.y;
+  if(Date.now()-s.at>700||Math.abs(dx)<Math.max(60,innerWidth*.18)||Math.abs(dx)<2*Math.abs(dy))return;
+  const cur=SCREENS.indexOf((document.querySelector('.screen.active')||{}).id),next=cur+(dx<0?1:-1);
+  if(cur<0||next<0||next>=SCREENS.length)return;
+  showScreen(SCREENS[next]);const n=$(SCREENS[next]);n.classList.remove('swipe-from-left','swipe-from-right');void n.offsetWidth;n.classList.add(dx<0?'swipe-from-right':'swipe-from-left');
+},{passive:true});
+document.querySelector('main').addEventListener('touchcancel',()=>{swipeStart=null;},{passive:true});
+$('swipe-toggle').checked=swipeOn();
+$('swipe-toggle').onchange=()=>{settings=Object.assign({},settings,{swipe:$('swipe-toggle').checked});saveSettings();};
 $('show-info').onclick=()=>{$('quick-menu').close();$('info-dialog').showModal();};$('close-info').onclick=()=>$('info-dialog').close();
 $('choice-confirm').onclick=()=>closeChoice(true);$('choice-cancel').onclick=()=>closeChoice(false);$('choice-dialog').addEventListener('cancel',ev=>{ev.preventDefault();closeChoice(false);});
 $('time-jump-next').onclick=()=>closeTimeJump('next');$('time-jump-retro').onclick=()=>closeTimeJump('retro');$('time-jump-cancel').onclick=()=>closeTimeJump(false);
