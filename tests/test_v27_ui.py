@@ -1,6 +1,7 @@
 """2.7 UI: six event types fit, penalty shot (grid/keypad, scored counts), note (team or general),
 empty-net goal marked in history/detail/report/print/text. Chromium only, no real Android."""
 from pathlib import Path
+import re
 import json,os,sys
 from playwright.sync_api import sync_playwright,expect
 from test_ui import boot,state,skip_operator,confirm,assert_fit
@@ -70,11 +71,11 @@ def main():
       assert 'Empty-Net-Tor' in p.locator('.detail-hint.EN').inner_text();p.locator('#detail-ok').click()
       assert 'Empty Net' in p.locator('.event-row.latest').inner_text()
       p.get_by_role('button',name='Bericht',exact=True).click();rep=p.locator('#report-sheet').inner_text()
-      assert 'Tor · EN' in rep.replace('TOR','Tor') or 'TOR · EN' in rep,rep
+      assert re.search(r'(TOR|Tor)( \d+:\d+)? · EN',rep),rep  # 3.3: score between type and EN
       assert 'Penalty' in rep or 'PENALTY' in rep and 'Eis repariert' in rep
       assert '2 : 1' not in rep and '1 : 1' in rep,rep  # 1 PS goal home + 1 EN goal away
       p.evaluate('EgrepUI.preparePrintReport()');pr=p.locator('#print-output').text_content();assert 'EN' in pr and 'Eis repariert' in pr and 'kein Tor' in pr
-      txt=p.evaluate('EgrepUI.reportText()');assert 'Tor (EN)' in txt and 'Allgemein | Notiz | Eis repariert' in txt and 'Penalty | 8, Tor' in txt,txt
+      txt=p.evaluate('EgrepUI.reportText()');assert re.search(r'Tor( \d+:\d+)? \(EN\)',txt) and 'Allgemein | Notiz | Eis repariert' in txt and re.search(r'Penalty( \d+:\d+)? \| 8, Tor',txt),txt  # 3.3: score after goals
       if size==(360,640):p.screenshot(path=str(OUT/'bericht-27-360x640.png'),full_page=True)
       # Persisted after reload.
       n=p.evaluate("(()=>{const L=window.EgrepLogic||window.L;const raw=JSON.parse(localStorage.getItem('nev-spielnotiz-v0.1'));return [raw.events.length, L?L.migrateState(raw).events.length:-1];})()")

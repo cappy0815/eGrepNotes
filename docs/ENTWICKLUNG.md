@@ -1,10 +1,11 @@
-# eGrep Notes – Entwicklung (Stand 3.2)
+# eGrep Notes – Entwicklung (Stand 3.3)
 
 Autor: Michael Nowak & KI. Stand: 20.11.2026.
 Basis: Quellprojekt 2.9 (Original), darauf 3.0 und 3.1.
 
-## Neu in 3.2 / 3.1 / 3.0
+## Neu in 3.3 / 3.2 / 3.1 / 3.0
 
+- 3.3: Spielstand bei jedem Tor im Bericht; abgelesene Uhrzeit rechtsbündig.
 - 3.2: Spieler-Gedächtnis, EHV-Abgleich, Sicherung, Update-Prüfung, „Bisher“ beim Bearbeiten.
 - 3.1: Wischen zwischen Aufstellung, Spiel und Bericht (abschaltbar in den Einstellungen).
 - 3.0: Einstellungen mit Heimmannschaft (43 EHV-NRW-Vereine mit Wappen, eigener Name, Neusser EV voreingestellt).

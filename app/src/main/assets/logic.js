@@ -5,7 +5,7 @@
   else root.EgrepLogic = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  const VERSION = '3.2';
+  const VERSION = '3.3';
   const DATA_VERSION = 9;
   const PERIOD_SECONDS = 1200;
   // 2.1: sorted by frequency in a sample of 27 EHV NRW games (241 penalties, hockeydata game reports,
@@ -291,6 +291,12 @@
     if (so.winner) r[so.winner]++;
     return r;
   }
+  // 3.3: score after each goal in game-time order (penalty shots that were scored count), {eventId: '2:1'}.
+  function runningScores(state) {
+    const out = {}, s = {home:0, away:0};
+    sortedEventsByGameTime(state.events).forEach(e => { if (isGoal(e) && ['home','away'].includes(e.team)) { s[e.team]++; out[e.id] = s.home + ':' + s.away; } });
+    return out;
+  }
   function scoreLabel(state) { const s = score(state); return s.home + ' : ' + s.away + (shootoutResult(state).winner ? ' n.P.' : ''); }
   // 2.0: goals per period, e.g. [{home:1,away:0},{home:2,away:1},{home:0,away:0}].
   function periodScores(state) {
@@ -397,7 +403,7 @@
     });
     return result;
   }
-  return {NOTE_MAX,cleanNote,isGoal,emptyNetGoal,normTeamName,baseTeamName,teamLogoIndex,TIME_MODES,normalizeTimeMode,upToClock,upLabel,upDigits,elapsedToClock,elapsedDigits,EMPTY_NET,normalizeGoalie,regularScore,shootoutResult,scoreLabel,periodScores,runningPenalties,powerPlayHint,VERSION,DATA_VERSION,QUICK_PENALTIES,PERIOD_SECONDS,PENALTIES,PENALTY_DURATIONS,normalizePenaltyDuration,penaltyDurationLabel,penaltyDescription,TYPE_LABELS,uid,localDate,emptyState,normalizePeriod,clockJumpIssue,normalizeNumber,normalizeTime,
+  return {NOTE_MAX,cleanNote,isGoal,emptyNetGoal,normTeamName,baseTeamName,teamLogoIndex,TIME_MODES,normalizeTimeMode,upToClock,upLabel,upDigits,elapsedToClock,elapsedDigits,EMPTY_NET,normalizeGoalie,regularScore,shootoutResult,scoreLabel,runningScores,periodScores,runningPenalties,powerPlayHint,VERSION,DATA_VERSION,QUICK_PENALTIES,PERIOD_SECONDS,PENALTIES,PENALTY_DURATIONS,normalizePenaltyDuration,penaltyDurationLabel,penaltyDescription,TYPE_LABELS,uid,localDate,emptyState,normalizePeriod,clockJumpIssue,normalizeNumber,normalizeTime,
     eventElapsedSeconds,compareMoments,compareEventsByGameTime,sortedEventsByGameTime,sortedEventsByEntryDesc,formatGameTime,clockDigits,
     hasDuplicateNumber,appendPlayer,playerByNumber,playerLabel,chronologyIssue,getStartGoalie,goalieAt,goalieSuggestions,
     participants,needsServer,servedLabel,unknownPlayers,validateEvent,timeoutIssue,score,eventShort,eventNames,clockLabel,migrateState};

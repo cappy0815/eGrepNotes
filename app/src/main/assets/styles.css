@@ -354,3 +354,9 @@ button.event-row{width:100%;font:inherit;color:inherit;text-align:left;grid-temp
 .file-button{font-size:16px;color:#343b46;margin:0}
 .suggestion-picks button[aria-pressed="true"]::before{content:"\2713  ";font-weight:800}
 .suggestion-picks button[aria-pressed="false"]{text-decoration:line-through;opacity:.7}
+
+/* 3.3: score after each goal; read clock time right-aligned in its column */
+.report-score{display:inline-block;margin-left:4px;padding:1px 7px;border-radius:7px;background:#20232a;color:#fff;font-size:12.5px;font-weight:800;letter-spacing:0;font-variant-numeric:tabular-nums;vertical-align:middle}
+.report-sheet .time-clock{text-align:right}
+.print-sheet .print-clock{float:right;margin-left:.6em}
+.report-sheet .pen-who{display:block;font-weight:700}.report-sheet .pen-what{display:block}.report-sheet .pen-served{display:block;font-size:12px;color:var(--muted)}.report-sheet .pen-served.open{color:#b26a00;font-weight:700}

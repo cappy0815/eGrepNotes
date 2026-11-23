@@ -1,10 +1,13 @@
-# Projektstand eGrep Notes 3.2
+# Projektstand eGrep Notes 3.3
 
 18.10.2026. Autor Michael Nowak & KI.
-Paket de.michaelnowak.egrepnotes; versionCode 32; Datenformatversion 9.
+Paket de.michaelnowak.egrepnotes; versionCode 33; Datenformatversion 9.
 Aufbauend auf 2.7. Offline-Build mit Python/OpenSSL; Java/Gradle-Referenz enthalten.
 Signiert mit dem Original-Schluessel aus der PRIVAT-Sicherung 1.4 (Zertifikat EE:80:AC:0D...2D:77).
 
+Neu 3.3: L.runningScores(state) -> {eventId: "h:a"} (isGoal, sortedEventsByGameTime); .report-score im Bericht,
+im Text und Druck hinter der Ereignisart; .time-clock/.print-clock rechtsbuendig; Strafen als penaltyParts/penaltyLines
+(Bericht) bzw. zweizeilig in printDetails.
 Neu 3.2: assets/roster.js (window.EgrepRoster: learn/memoryFor/suggest/applySuggestions/mergeDb, ehvLookup ueber
 api.hockeydata.net/data/ebel Schedule + GetGameReport, Schluessel/Ligen von ehv-nrw.de/leagues/next-games/ mit Rueckfallwerten).
 localStorage 'egrep-spieler-v1' (Gedaechtnis), 'egrep-ehv-cache-v1' (Spielplan-Zeilen 6 h), 'egrep-update'.

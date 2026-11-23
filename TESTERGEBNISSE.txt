@@ -1,3 +1,10 @@
+Teststand 3.3 - 23.11.2026
+PASS: test_v33_ui (320 und 412 px): Strafen zweizeilig (Bericht und Druck); Spielstand nach jedem Tor in Bericht, Text und Ausdruck, Reihenfolge nach
+      Spielzeit (Eingabereihenfolge egal), verwandelter Penalty zaehlt, verschossener/Strafe/Timeout ohne Stand;
+      abgelesene Uhrzeit rechtsbuendig (Bericht und Druck), Spielzeit links, kein Ueberlauf.
+PASS: alle bisherigen Tests; test_apk 3.3; test_upgrade 3.2 -> 3.3.
+Nicht getestet: echtes Android-Geraet.
+
 Teststand 3.2 - 20.11.2026
 PASS: test_v32_logic: Altersklasse, Spieler-Gedaechtnis (nur bestaetigte Spieler, Zaehler, Ersetzen, Klassen
       getrennt, Grenzen, kaputte Daten), Vorschlaege Name/Nummer/Torwart/fehlend (Gedaechtnis vs. exakte

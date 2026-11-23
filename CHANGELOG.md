@@ -1,3 +1,11 @@
+## 3.3 - 2026-11-23
+
+- Bericht, Ausdruck und Text: Bei jedem Tor steht der Spielstand nach dem Tor (z. B. "Tor 2:1"),
+  in Spielzeit-Reihenfolge. Verwandelte Penaltys zaehlen mit, verschossene nicht.
+- Die graue abgelesene Uhrzeit steht in Bericht und Ausdruck rechtsbuendig in der Zeitspalte.
+- Strafen in Bericht und Ausdruck zweizeilig: "Strafe #Nummer Name", darunter "Strafmass · Strafart"
+  (und ggf. wer absitzt).
+
 ## 3.2 - 2026-11-20
 
 - Beim Bearbeiten steht oben "Bisher: Zeit · Art · Mannschaft · Nummern/Strafe"; die bisherige

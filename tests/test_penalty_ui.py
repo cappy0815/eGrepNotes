@@ -36,7 +36,7 @@ with sync_playwright() as pw:
  assert state(p)['events'][1]['penaltyDuration']=='game';p.locator('#undo').click();assert state(p)['events'][1]['penaltyDuration']=='5'
  # Report shows names (not print-only), duration and unambiguous team colours.
  p.get_by_role('button',name='Bericht',exact=True).click()
- expect(p.locator('#report-sheet .event-names').first).to_be_visible()
+ expect(p.locator('#report-sheet .pen-who, #report-sheet .event-names').first).to_be_visible()  # 3.3: penalties as who/what lines
  assert 'Alex Beispiel' in p.locator('#report-sheet').inner_text() and 'Kim Muster' in p.locator('#report-sheet').inner_text()
  assert '2 Min.' in p.locator('#report-sheet').inner_text() and '5 Min.' in p.locator('#report-sheet').inner_text()
  home=p.locator('#report-sheet tr.penalty.home').first.evaluate('(e)=>getComputedStyle(e).backgroundColor')
